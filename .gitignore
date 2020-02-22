@@ -1,0 +1,6 @@
+# Private Information
+google_keys.json
+tokens.json
+
+# Clean Repository
+node_modules
