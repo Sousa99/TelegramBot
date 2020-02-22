@@ -63,7 +63,7 @@ var getTasks = async function(date) {
     var classes = []
     for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
     
-    var data = await gsGet(cl,'REGISTO!C2')
+    var data = await gsGet('REGISTO!C2')
     var base_date = new Date(data.data.values[0]);
     var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
     
@@ -74,6 +74,7 @@ var getTasks = async function(date) {
         
         var range = 'TAREFAS!' + letter1 + row.toString() + ':' + letter2 + (row+10).toString();
         data = await gsGet(range);
+        if (data.data.values == undefined) continue;
         classes[index]['tasks'] = data.data.values.map(function(item) { 
             var state = item[1];
             if (state == 'x' || state == 'X') state = 'Done';
