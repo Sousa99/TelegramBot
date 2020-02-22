@@ -4,7 +4,7 @@ var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
 var bot = new TelegramBot(tokens.telegram, {polling: true});
 
-bot.onText(/\/fas registry(.*)/, function(msg, match) {
+bot.onText(/\/show_registry(.*)/, function(msg, match) {
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(match[1]);
@@ -38,7 +38,7 @@ bot.onText(/\/fas registry(.*)/, function(msg, match) {
 
 });
 
-bot.onText(/\/fas tasks(.*)/, function(msg, match) {
+bot.onText(/\/show_tasks(.*)/, function(msg, match) {
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(match[1]);
