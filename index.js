@@ -15,7 +15,7 @@ bot.onText(/\/start(.*)/, function(msg, match) {
 
     var message = 'This are all the available commands:\n'
     commands.available_commands.map(command => { 
-        message += '<b>' + command.tag + '</b>: ' + command.description + '\n'; })
+        message += '<b>/' + command.tag + '</b>: ' + command.description + '\n'; })
     bot.sendMessage(chatId, message, opts);
 });
 
