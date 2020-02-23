@@ -5,6 +5,7 @@ var tokens = require('./tokens.json');
 var bot = new TelegramBot(tokens.telegram, {polling: true});
 
 bot.onText(/\/show_registry(.*)/, function(msg, match) {
+    console.log("Showing Registry!");
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -33,6 +34,7 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/mark_registry(.*)/, function(msg, match) {
+    console.log("Marking Event on Registry!");
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -46,6 +48,7 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
 })
 
 bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
+    console.log("Unmarking Event on Registry!");
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -59,6 +62,7 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
 })
 
 bot.onText(/\/show_tasks(.*)/, function(msg, match) {
+    console.log("Showing Tasks!");
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -87,6 +91,7 @@ bot.onText(/\/show_tasks(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/mark_task(.*)/, function(msg, match) {
+    console.log("Marking Task!");
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -99,6 +104,7 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/unmark_task(.*)/, function(msg, match) {
+    console.log("Unmarking Task!");
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
