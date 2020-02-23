@@ -2,10 +2,25 @@ var fas = require('./fas.js');
 
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
+var commands = require('./commands.json');
 var bot = new TelegramBot(tokens.telegram, {polling: true});
 
+bot.onText(/\/start(.*)/, function(msg, match) {
+    console.log('Starting Bot!');
+    const opts = { parse_mode: 'HTML' };
+    const chatId = msg.chat.id;
+
+    var message = 'Hello <b>' + msg.from.first_name + ' ' + msg.from.last_name + '</b>,\n';
+    bot.sendMessage(chatId, message, opts);
+
+    var message = 'This are all the available commands:\n'
+    commands.available_commands.map(command => { 
+        message += '<b>' + command.tag + '</b>: ' + command.description + '\n'; })
+    bot.sendMessage(chatId, message, opts);
+});
+
 bot.onText(/\/show_registry(.*)/, function(msg, match) {
-    console.log("Showing Registry!");
+    console.log('Showing Registry!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -15,7 +30,7 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
     var total = tags.find(item => item.tag == '-t') != undefined
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) {
-            bot.sendMessage(chatId, "There was nothing to register that day!");
+            bot.sendMessage(chatId, 'There was nothing to register that day!');
             return;
         }
 
@@ -27,14 +42,14 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
             if (!['x', 'X', 'nao houve'].includes(current_activity.state)) perfect = false;
         }
 
-        if (perfect && !total) bot.sendMessage(chatId, "<b>You attended everything!</b>", opts);
+        if (perfect && !total) bot.sendMessage(chatId, '<b>You attended everything!</b>', opts);
         else bot.sendMessage(chatId, message, opts);
     });
 
 });
 
 bot.onText(/\/mark_registry(.*)/, function(msg, match) {
-    console.log("Marking Event on Registry!");
+    console.log('Marking Event on Registry!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -42,13 +57,13 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
 
     var date = processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
-        if (info.length == 0) bot.sendMessage(chatId, "The schedule is empty! Nothing to mark!", opts);
+        if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to mark!', opts);
         else getEventDescription(chatId, msg, tags, info, fas.markRegistry)
     });
 })
 
 bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
-    console.log("Unmarking Event on Registry!");
+    console.log('Unmarking Event on Registry!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -56,13 +71,13 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
 
     var date = processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
-        if (info.length == 0) bot.sendMessage(chatId, "The schedule is empty! Nothing to unmark!", opts);
+        if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to unmark!', opts);
         else getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry)
     });
 })
 
 bot.onText(/\/show_tasks(.*)/, function(msg, match) {
-    console.log("Showing Tasks!");
+    console.log('Showing Tasks!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -91,7 +106,7 @@ bot.onText(/\/show_tasks(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/mark_task(.*)/, function(msg, match) {
-    console.log("Marking Task!");
+    console.log('Marking Task!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -104,7 +119,7 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/unmark_task(.*)/, function(msg, match) {
-    console.log("Unmarking Task!");
+    console.log('Unmarking Task!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -118,7 +133,7 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
 });
 
 // SUPPORT FUNCTIONS
-bot.on("polling_error", (err) => console.log(err));
+bot.on('polling_error', (err) => console.log(err));
 
 function validateDate(dateString) {
     var date = new Date(dateString)
@@ -130,22 +145,22 @@ function processDate(chatId, opts, tags) {
     var date_value = tags.find(item => item.tag == '-d')
     if (date_value != undefined) {
         if (validateDate(date_value.value)) date = new Date(date_value.value);
-        else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
+        else bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
     }
 
     return date;
 }
 
 function analyseInput(chatId, string) {
-    var array = string.split(" ").filter(item => item != '');
+    var array = string.split(' ').filter(item => item != '');
     var items = []
     
     for (var index = 0; index < array.length; index++) {
         if (array[index][0] != '-') {
-            bot.sendMessage(chatId, "There was a problem, check your request!", opts);
+            bot.sendMessage(chatId, 'There was a problem, check your request!', opts);
             return -1;
         } else if (index == array.length - 1 || array[index+1][0] == '-') {
-            items.push({"tag": array[index].toLowerCase()});
+            items.push({'tag': array[index].toLowerCase()});
         } else {
             var counter = 1;
             var value = '';
@@ -155,7 +170,7 @@ function analyseInput(chatId, string) {
             }
 
             value = value.slice(0, -1);
-            items.push({"tag": array[index].toLowerCase(), "value": value});
+            items.push({'tag': array[index].toLowerCase(), 'value': value});
             index += counter - 1;
         }
     }
@@ -184,7 +199,7 @@ function getClassTask(chatId, msg, tags, info, callback) {
             opts_keyboard.reply_markup.keyboard.push([button]);
         });
 
-        bot.sendMessage(chatId, "Choose to which class you wish to mark / unmark a task:", opts_keyboard);
+        bot.sendMessage(chatId, 'Choose to which class you wish to mark / unmark a task:', opts_keyboard);
 
     } else if (task_tag == undefined) {
         var class_item = info.find(item => item.name == class_tag.value);
@@ -194,25 +209,25 @@ function getClassTask(chatId, msg, tags, info, callback) {
             opts_keyboard.reply_markup.keyboard.push([button]);
         });
 
-        bot.sendMessage(chatId, "Choose which task you wish to mark / unmark :", opts_keyboard);
+        bot.sendMessage(chatId, 'Choose which task you wish to mark / unmark :', opts_keyboard);
 
     } else {
         var class_index = info.findIndex(item => item.name == class_tag.value);
         if (class_index == -1) {
-            bot.sendMessage(chatId, "There was a problem finding the class!", opts);
+            bot.sendMessage(chatId, 'There was a problem finding the class!', opts);
             return;
         }
         
         var class_item = info[class_index];
         var task_index = class_item.tasks.findIndex(item => item.name == task_tag.value);
         if (task_index == -1) {
-            bot.sendMessage(chatId, "There was a problem finding the task!", opts);
+            bot.sendMessage(chatId, 'There was a problem finding the task!', opts);
             return;
         }
 
         callback(date, class_index, task_index).then(function(value) {
-            if (value == -1) bot.sendMessage(chatId, "There was a problem marking / unmarking the task!", opts);
-            else bot.sendMessage(chatId, "Task marked / unmarked <b>successfully</b>!", opts);
+            if (value == -1) bot.sendMessage(chatId, 'There was a problem marking / unmarking the task!', opts);
+            else bot.sendMessage(chatId, 'Task marked / unmarked <b>successfully</b>!', opts);
         })
     }
 }
@@ -241,7 +256,7 @@ function getEventDescription(chatId, msg, tags, info, callback) {
             }
         });
 
-        bot.sendMessage(chatId, "Choose which event you wish to mark / unmark:", opts_keyboard);
+        bot.sendMessage(chatId, 'Choose which event you wish to mark / unmark:', opts_keyboard);
 
     } else {
         var index = []
@@ -250,13 +265,13 @@ function getEventDescription(chatId, msg, tags, info, callback) {
                 index.push(event_index);
 
         if (index == []) {
-            bot.sendMessage(chatId, "There was a problem finding the event!", opts);
+            bot.sendMessage(chatId, 'There was a problem finding the event!', opts);
             return -1;
         }
 
         callback(date, index[0], index.length).then(function(value) {
-            if (value == -1) bot.sendMessage(chatId, "There was a problem marking / unmarking the task!", opts);
-            else bot.sendMessage(chatId, "Task marked / unmarked <b>successfully</b>!", opts);
+            if (value == -1) bot.sendMessage(chatId, 'There was a problem marking / unmarking the task!', opts);
+            else bot.sendMessage(chatId, 'Task marked / unmarked <b>successfully</b>!', opts);
         })
     }
 }
