@@ -38,6 +38,42 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
 
 });
 
+bot.onText(/\/mark_registry(.*)/, function(msg, match) {
+    var chatId = msg.chat.id;
+    const opts = { parse_mode: 'HTML' };
+    const tags = analyseInput(chatId, match[1]);
+    if (tags == -1) return;
+
+    var date = new Date();
+    var date_value = tags.find(item => item.tag == '-d')
+    if (date_value != undefined) {
+        if (validateDate(date_value.value)) date = new Date(date_value.value);
+        else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
+    }
+
+    fas.getRegistryDay(date).then(function(info) {
+        getEventDescription(chatId, msg, tags, info, fas.markRegistry)
+    });
+})
+
+bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
+    var chatId = msg.chat.id;
+    const opts = { parse_mode: 'HTML' };
+    const tags = analyseInput(chatId, match[1]);
+    if (tags == -1) return;
+
+    var date = new Date();
+    var date_value = tags.find(item => item.tag == '-d')
+    if (date_value != undefined) {
+        if (validateDate(date_value.value)) date = new Date(date_value.value);
+        else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
+    }
+
+    fas.getRegistryDay(date).then(function(info) {
+        getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry)
+    });
+})
+
 bot.onText(/\/show_tasks(.*)/, function(msg, match) {
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
@@ -84,11 +120,9 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
         if (validateDate(date_value.value)) date = new Date(date_value.value);
         else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
     }
-
-    var class_tag = tags.find(item => item.tag == '-class');
-    var task_tag = tags.find(item => item.tag == '-task');
+    
     fas.getTasks(date).then(function(info) {
-        getClassTask(chatId, msg, date, class_tag, task_tag, info, fas.markTask)
+        getClassTask(chatId, msg, tags, info, fas.markTask)
     });
 });
 
@@ -105,10 +139,8 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
         else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
     }
 
-    var class_tag = tags.find(item => item.tag == '-class');
-    var task_tag = tags.find(item => item.tag == '-task');
     fas.getTasks(date).then(function(info) {
-        getClassTask(chatId, msg, date, class_tag, task_tag, info, fas.unmarkTask)
+        getClassTask(chatId, msg, tags, info, fas.unmarkTask)
     });
 
 });
@@ -148,7 +180,17 @@ function analyseInput(chatId, string) {
     return items;
 }
 
-function getClassTask(chatId, msg, date, class_tag, task_tag, info, callback) {
+function getClassTask(chatId, msg, tags, info, callback) {
+    var date = new Date();
+    var date_value = tags.find(item => item.tag == '-d')
+    if (date_value != undefined) {
+        if (validateDate(date_value.value)) date = new Date(date_value.value);
+        else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
+    }
+
+    var class_tag = tags.find(item => item.tag == '-class');
+    var task_tag = tags.find(item => item.tag == '-task');
+
     const opts = { parse_mode: 'HTML' };
     const opts_keyboard = { parse_mode: 'HTML',
         'reply_markup': {
@@ -191,6 +233,56 @@ function getClassTask(chatId, msg, date, class_tag, task_tag, info, callback) {
         }
 
         callback(date, class_index, task_index).then(function(value) {
+            if (value == -1) bot.sendMessage(chatId, "There was a problem marking / unmarking the task!", opts);
+            else bot.sendMessage(chatId, "Task marked / unmarked <b>successfully</b>!", opts);
+        })
+    }
+}
+
+function getEventDescription(chatId, msg, tags, info, callback) {
+    var date = new Date();
+    var date_value = tags.find(item => item.tag == '-d')
+    if (date_value != undefined) {
+        if (validateDate(date_value.value)) date = new Date(date_value.value);
+        else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
+    }
+
+    var description_tag = tags.find(item => item.tag == '-desc');
+
+    const opts = { parse_mode: 'HTML' };
+    const opts_keyboard = { parse_mode: 'HTML',
+        'reply_markup': {
+            hide_keyboard: true,
+            resize_keyboard: true,
+            one_time_keyboard: true,
+            keyboard: []
+        }};
+
+    if (description_tag == undefined) {
+        var different_events = []
+        info.map(event_item => {
+            if (!different_events.includes(event_item.description)) {
+                different_events.push(event_item.description);
+
+                var button = msg.text + ' -desc ' + event_item.description;
+                opts_keyboard.reply_markup.keyboard.push([button]);
+            }
+        });
+
+        bot.sendMessage(chatId, "Choose which event you wish to mark / unmark:", opts_keyboard);
+
+    } else {
+        var index = []
+        for (var event_index = 0; event_index < info.length; event_index++)
+            if (info[event_index].description == description_tag.value)
+                index.push(event_index);
+
+        if (index == []) {
+            bot.sendMessage(chatId, "There was a problem finding the event!", opts);
+            return -1;
+        }
+
+        callback(date, index[0], index.length).then(function(value) {
             if (value == -1) bot.sendMessage(chatId, "There was a problem marking / unmarking the task!", opts);
             else bot.sendMessage(chatId, "Task marked / unmarked <b>successfully</b>!", opts);
         })

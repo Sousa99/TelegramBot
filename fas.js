@@ -46,9 +46,25 @@ async function gsPost(range, values) {
     return res;
 }
 
-async function changeValueTask(date, class_index, task_index, value) {
-    var data = await gsGet('TAREFAS!B3:O3');
+async function changeValueRegistry(date, index, count, value) {
+    var data = await gsGet('REGISTO!C2')
+    var base_date = new Date(data.data.values[0]);
+    var delta_days = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24));
     
+    var row = delta_days * 2 + 3;
+    var letter = String.fromCharCode('F'.charCodeAt(0) +index);
+    
+    var range = 'REGISTO!' + letter + row.toString();
+    var values = [];
+    for (var x = 0; x < count; x++) values.push(value);
+
+    res = await gsPost(range, [values]);
+    if (res.statusText != 'OK') return -1;
+    
+    return 1;
+}
+
+async function changeValueTask(date, class_index, task_index, value) {
     var data = await gsGet('REGISTO!C2')
     var base_date = new Date(data.data.values[0]);
     var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
@@ -77,7 +93,8 @@ var getRegistryDay = async function(date) {
     if (data.data.values != undefined) {
         for (event_index in data.data.values[0]){
             description = data.data.values[0][event_index];
-            state = data.data.values[1][event_index];
+            if (data.data.values[1] == undefined) state = '';
+            else state = data.data.values[1][event_index];
 
             if (state == undefined) state = '';
 
@@ -86,6 +103,14 @@ var getRegistryDay = async function(date) {
     }
     
     return info;
+}
+
+var markRegistry = async function(date, index, count) {
+    return changeValueRegistry(date, index, count, 'x');
+}
+
+var unmarkRegistry = async function(date, index, count) {
+    return changeValueRegistry(date, index, count, '');
 }
 
 var getTasks = async function(date) {
@@ -127,6 +152,8 @@ var unmarkTask = async function(date, class_index, task_index) {
 }
 
 exports.getRegistryDay = getRegistryDay;
+exports.markRegistry = markRegistry;
+exports.unmarkRegistry = unmarkRegistry;
 exports.getTasks = getTasks;
 exports.markTask = markTask;
 exports.unmarkTask = unmarkTask;
