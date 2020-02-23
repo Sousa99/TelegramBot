@@ -88,58 +88,27 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
     var class_tag = tags.find(item => item.tag == '-class');
     var task_tag = tags.find(item => item.tag == '-task');
     fas.getTasks(date).then(function(info) {
-        if (class_tag == undefined) {
-            opts['reply_markup'] = { 
-                hide_keyboard: true,
-                resize_keyboard: true,
-                one_time_keyboard: true,
-                keyboard: []};
-    
-            info.map(class_item => {
-                var button = msg.text + ' -class ' + class_item.name;
-                opts.reply_markup.keyboard.push([button]);
-            });
-    
-            bot.sendMessage(chatId, "Choose to which class you wish to mark a task:", opts);
+        getClassTask(chatId, msg, date, class_tag, task_tag, info, fas.markTask)
+    });
+});
 
-        } else {
-            if (task_tag == undefined) {
-                opts['reply_markup'] = { 
-                    hide_keyboard: true,
-                    resize_keyboard: true,
-                    one_time_keyboard: true,
-                    keyboard: []};
-    
-                var class_item = info.find(item => item.name == class_tag.value);
-        
-                class_item.tasks.map(task => {
-                    var button = msg.text + ' -task ' + task.name;
-                    opts.reply_markup.keyboard.push([button]);
-                });
-        
-                bot.sendMessage(chatId, "Choose which task you wish to mark:", opts);
+bot.onText(/\/unmark_task(.*)/, function(msg, match) {
+    var chatId = msg.chat.id;
+    const opts = { parse_mode: 'HTML' };
+    const tags = analyseInput(chatId, match[1]);
+    if (tags == -1) return;
 
-            } else {
-                var class_index = info.findIndex(item => item.name == class_tag.value);
-                if (class_index == -1) {
-                    bot.sendMessage(chatId, "There was a problem finding the class!", opts);
-                    return;
-                }
-                
-                var class_item = info[class_index];
-                
-                var task_index = class_item.tasks.findIndex(item => item.name == task_tag.value);
-                if (task_index == -1) {
-                    bot.sendMessage(chatId, "There was a problem finding the task!", opts);
-                    return;
-                }
+    var date = new Date();
+    var date_value = tags.find(item => item.tag == '-d')
+    if (date_value != undefined) {
+        if (validateDate(date_value.value)) date = new Date(date_value.value);
+        else bot.sendMessage(chatId, "Date could not be parsed, showing <b>Today</b>!", opts);
+    }
 
-                fas.markTask(date, class_index, task_index).then(function(value) {
-                    if (value == -1) bot.sendMessage(chatId, "There was a problem marking the task!", opts);
-                    else bot.sendMessage(chatId, "Task marked <b>successfully</b>!", opts);
-                })
-            }
-        }
+    var class_tag = tags.find(item => item.tag == '-class');
+    var task_tag = tags.find(item => item.tag == '-task');
+    fas.getTasks(date).then(function(info) {
+        getClassTask(chatId, msg, date, class_tag, task_tag, info, fas.unmarkTask)
     });
 
 });
@@ -177,4 +146,53 @@ function analyseInput(chatId, string) {
     }
 
     return items;
+}
+
+function getClassTask(chatId, msg, date, class_tag, task_tag, info, callback) {
+    const opts = { parse_mode: 'HTML' };
+    const opts_keyboard = { parse_mode: 'HTML',
+        'reply_markup': {
+            hide_keyboard: true,
+            resize_keyboard: true,
+            one_time_keyboard: true,
+            keyboard: []
+        }};
+
+    if (class_tag == undefined) {
+        info.map(class_item => {
+            var button = msg.text + ' -class ' + class_item.name;
+            opts_keyboard.reply_markup.keyboard.push([button]);
+        });
+
+        bot.sendMessage(chatId, "Choose to which class you wish to mark / unmark a task:", opts_keyboard);
+
+    } else if (task_tag == undefined) {
+        var class_item = info.find(item => item.name == class_tag.value);
+
+        class_item.tasks.map(task => {
+            var button = msg.text + ' -task ' + task.name;
+            opts_keyboard.reply_markup.keyboard.push([button]);
+        });
+
+        bot.sendMessage(chatId, "Choose which task you wish to mark / unmark :", opts_keyboard);
+
+    } else {
+        var class_index = info.findIndex(item => item.name == class_tag.value);
+        if (class_index == -1) {
+            bot.sendMessage(chatId, "There was a problem finding the class!", opts);
+            return;
+        }
+        
+        var class_item = info[class_index];
+        var task_index = class_item.tasks.findIndex(item => item.name == task_tag.value);
+        if (task_index == -1) {
+            bot.sendMessage(chatId, "There was a problem finding the task!", opts);
+            return;
+        }
+
+        callback(date, class_index, task_index).then(function(value) {
+            if (value == -1) bot.sendMessage(chatId, "There was a problem marking / unmarking the task!", opts);
+            else bot.sendMessage(chatId, "Task marked / unmarked <b>successfully</b>!", opts);
+        })
+    }
 }

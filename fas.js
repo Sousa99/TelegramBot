@@ -46,6 +46,23 @@ async function gsPost(range, values) {
     return res;
 }
 
+async function changeValueTask(date, class_index, task_index, value) {
+    var data = await gsGet('TAREFAS!B3:O3');
+    
+    var data = await gsGet('REGISTO!C2')
+    var base_date = new Date(data.data.values[0]);
+    var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
+    
+    var row = delta_weeks * 12 + 5 + task_index;
+    var letter = String.fromCharCode('C'.charCodeAt(0) + 2 * class_index);
+    
+    var range = 'TAREFAS!' + letter + row.toString();
+    res = await gsPost(range, [[value]]);
+    if (res.statusText != 'OK') return -1;
+    
+    return 1;
+}
+
 var getRegistryDay = async function(date) {
     var data = await gsGet('REGISTO!C2')
 
@@ -102,22 +119,14 @@ var getTasks = async function(date) {
 }
 
 var markTask = async function(date, class_index, task_index) {
-    var data = await gsGet('TAREFAS!B3:O3');
-    
-    var data = await gsGet('REGISTO!C2')
-    var base_date = new Date(data.data.values[0]);
-    var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
-    
-    var row = delta_weeks * 12 + 5 + task_index;
-    var letter = String.fromCharCode('C'.charCodeAt(0) + 2 * class_index);
-    
-    var range = 'TAREFAS!' + letter + row.toString();
-    res = await gsPost(range, [['x']]);
-    if (res.statusText != 'OK') return -1;
-    
-    return 1;
+    return changeValueTask(date, class_index, task_index, 'x');
+}
+
+var unmarkTask = async function(date, class_index, task_index) {
+    return changeValueTask(date, class_index, task_index, '');
 }
 
 exports.getRegistryDay = getRegistryDay;
 exports.getTasks = getTasks;
 exports.markTask = markTask;
+exports.unmarkTask = unmarkTask;
