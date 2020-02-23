@@ -10,6 +10,7 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
     
+    var date = processDate(chatId, opts, tags);
     var total = tags.find(item => item.tag == '-t') != undefined
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) {
@@ -39,7 +40,8 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
 
     var date = processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
-        getEventDescription(chatId, msg, tags, info, fas.markRegistry)
+        if (info.length == 0) bot.sendMessage(chatId, "The schedule is empty! Nothing to mark!", opts);
+        else getEventDescription(chatId, msg, tags, info, fas.markRegistry)
     });
 })
 
@@ -51,7 +53,8 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
 
     var date = processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
-        getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry)
+        if (info.length == 0) bot.sendMessage(chatId, "The schedule is empty! Nothing to unmark!", opts);
+        else getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry)
     });
 })
 
