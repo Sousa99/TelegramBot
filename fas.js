@@ -32,6 +32,20 @@ async function gsGet(range) {
     return data;
 }
 
+async function gsPost(range, values) {
+    const gsapi = google.sheets({version: 'v4', auth: client});
+
+    const opt = {
+        spreadsheetId: FAS_ID,
+        range: range,
+        valueInputOption: 'USER_ENTERED',
+        resource: { values: values}
+    };
+
+    let res = await gsapi.spreadsheets.values.update(opt);
+    return res;
+}
+
 var getRegistryDay = async function(date) {
     var data = await gsGet('REGISTO!C2')
 
@@ -87,5 +101,23 @@ var getTasks = async function(date) {
     return classes;
 }
 
+var markTask = async function(date, class_index, task_index) {
+    var data = await gsGet('TAREFAS!B3:O3');
+    
+    var data = await gsGet('REGISTO!C2')
+    var base_date = new Date(data.data.values[0]);
+    var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
+    
+    var row = delta_weeks * 12 + 5 + task_index;
+    var letter = String.fromCharCode('C'.charCodeAt(0) + 2 * class_index);
+    
+    var range = 'TAREFAS!' + letter + row.toString();
+    res = await gsPost(range, [['x']]);
+    if (res.statusText != 'OK') return -1;
+    
+    return 1;
+}
+
 exports.getRegistryDay = getRegistryDay;
 exports.getTasks = getTasks;
+exports.markTask = markTask;
