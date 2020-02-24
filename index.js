@@ -27,7 +27,7 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
     
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
     var total = tags.find(item => item.tag == '-t') != undefined
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) {
@@ -56,7 +56,7 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to mark!', opts);
         else getEventDescription(chatId, msg, tags, info, fas.markRegistry, ['x', 'X', 'Done']);
@@ -70,7 +70,7 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to unmark!', opts);
         else getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry, ['']);
@@ -84,7 +84,7 @@ bot.onText(/\/show_tasks(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
     var total = tags.find(item => item.tag == '-t') != undefined
     fas.getTasks(date).then(function(info) {
         for (var class_index = 0; class_index < info.length; class_index++) {
@@ -113,7 +113,7 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
         getClassTask(chatId, msg, tags, info, fas.markTask, ['x', 'X', 'Done']);
     });
@@ -126,7 +126,7 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
         getClassTask(chatId, msg, tags, info, fas.unmarkTask, [''])
     });
@@ -173,7 +173,7 @@ function getClassTask(chatId, msg, tags, info, callback, blacklist = []) {
             keyboard: []
         }};
 
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
 
     var class_tag = tags.find(item => item.tag == '-class');
     var task_tag = tags.find(item => item.tag == '-task');
@@ -230,7 +230,7 @@ function getEventDescription(chatId, msg, tags, info, callback, blacklist = []) 
             keyboard: []
         }};
 
-    var date = date_module.processDate(chatId, opts, tags);
+    var date = date_module.processDateTag(chatId, opts, tags);
     var description_tag = tags.find(item => item.tag == '-desc');
 
     if (description_tag == undefined) {

@@ -1,4 +1,5 @@
 // FAS FUNCTIONS - GOOGLE SHEETS
+var date_module = require('./date.js');
 
 const {google} = require('googleapis');
 const google_keys = require('./google_keys.json')
@@ -24,13 +25,15 @@ var base_date;
 var classes = [];
 setupConst();
 
-async function setupConst() {
-    var data = await gsGet('REGISTO!C2');
-    base_date = new Date(data.data.values[0]);
+function setupConst() {
+    gsGet('REGISTO!C2').then(function(data) {
+        base_date = date_module.processDateString(data.data.values[0], "DD-MMM-YYYY");
+    });
 
-    var data = await gsGet('TAREFAS!B3:O3');
-    var classes_name = data.data.values[0].filter(item => item.length != '');
-    for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
+    gsGet('TAREFAS!B3:O3').then(function(data) {
+        var classes_name = data.data.values[0].filter(item => item.length != '');
+        for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
+    });
 }
 
 async function gsGet(range) {
@@ -60,7 +63,7 @@ async function gsPost(range, values) {
 }
 
 async function changeValueRegistry(date, index, count, value) {
-    var delta_days = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24));
+    var delta_days = date_module.getDelta(date, base_date);
     
     var row = delta_days * 2 + 3;
     var letter = String.fromCharCode('F'.charCodeAt(0) +index);
@@ -76,7 +79,7 @@ async function changeValueRegistry(date, index, count, value) {
 }
 
 async function changeValueTask(date, class_index, task_index, value) {
-    var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
+    var delta_weeks = date_module.getDelta(date, base_date, 'weeks');
     
     var row = delta_weeks * 12 + 5 + task_index;
     var letter = String.fromCharCode('C'.charCodeAt(0) + 2 * class_index);
@@ -89,8 +92,7 @@ async function changeValueTask(date, class_index, task_index, value) {
 }
 
 var getRegistryDay = async function(date) {
-    var delta_days = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24));
-
+    var delta_days = date_module.getDelta(date, base_date);
     var row = delta_days * 2 + 2;
     var range = 'REGISTO!F' + row.toString() + ':N' + (row+1).toString();
 
@@ -120,7 +122,7 @@ var unmarkRegistry = async function(date, index, count) {
 }
 
 var getTasks = async function(date) {
-    var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
+    var delta_weeks = date_module.getDelta(date, base_date, 'weeks');;
     
     var row = delta_weeks * 12 + 5;
     for (var index = 0; index < classes.length; index++) {

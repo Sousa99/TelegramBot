@@ -1,27 +1,62 @@
-function validateDate(dateString) {
-    var date = new Date(dateString)
-    return date instanceof Date && !isNaN(date);
+var moment = require('moment');
+
+function processInAndAgo(date_string) {
+    var array = date_string.split(' ');
+    var date = moment();
+
+    if (array.length == 3 && array[0] == 'in' && (number = parseInt(array[1])) != NaN)
+        date = date.add(number, array[2]);
+    else if (array.length == 3 && array[2] == 'ago' && (number = parseInt(array[0])) != NaN)
+        date = date.add(number, array[1]);
+    else return -1;
+
+    return date;
 }
 
-var processDate = function(chatId, opts, tags) {
-    var date = new Date();
+var processDateTag = function(chatId, opts, tags) {
+    var date = new moment();
     var date_value = tags.find(item => item.tag == '-d')
+
     if (date_value != undefined) {
         switch(date_value.value) {
             case 'yesterday':
-                date.setDate(date.getDate() - 1);
+                date = date.add(-1, 'day');
+                break;
+            case 'tomorrow':
+                date = date.add(1, 'day');
                 break;
             case 'last week':
-                date.setDate(date.getDate() - 7);
+            case 'previous week':
+                date = date.add(-1, 'week');
+                break;
+            case 'next week':
+                date = date.add(1, 'week');
                 break;
             
             default:
-                if (validateDate(date_value.value)) date = new Date(date_value.value);
-                else bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
+                date = new moment(date_value.value, moment.ISO_8601);
+                if (date.isValid()) return;
+
+                date = processInAndAgo(date_value.value);
+                if (date == -1) {
+                    bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
+                    date = new moment();
+                }
         }
     }
 
     return date;
 }
 
-exports.processDate = processDate;
+var processDateString = function(str, format) {
+    var date = new moment(str, format);
+    return date;
+}
+
+var getDelta = function(date1, date2, time = 'days') {
+    return date1.diff(date2, time);
+}
+
+exports.processDateTag = processDateTag;
+exports.processDateString = processDateString;
+exports.getDelta = getDelta;
