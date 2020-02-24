@@ -59,7 +59,7 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
     var date = date_module.processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to mark!', opts);
-        else getEventDescription(chatId, msg, tags, info, fas.markRegistry)
+        else getEventDescription(chatId, msg, tags, info, fas.markRegistry, ['x', 'X', 'Done']);
     });
 })
 
@@ -73,7 +73,7 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
     var date = date_module.processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to unmark!', opts);
-        else getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry)
+        else getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry, ['']);
     });
 })
 
@@ -115,7 +115,7 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
 
     var date = date_module.processDate(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
-        getClassTask(chatId, msg, tags, info, fas.markTask)
+        getClassTask(chatId, msg, tags, info, fas.markTask, ['x', 'X', 'Done']);
     });
 });
 
@@ -128,7 +128,7 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
 
     var date = date_module.processDate(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
-        getClassTask(chatId, msg, tags, info, fas.unmarkTask)
+        getClassTask(chatId, msg, tags, info, fas.unmarkTask, [''])
     });
 
 });
@@ -163,7 +163,7 @@ function analyseInput(chatId, string) {
     return items;
 }
 
-function getClassTask(chatId, msg, tags, info, callback) {
+function getClassTask(chatId, msg, tags, info, callback, blacklist = []) {
     const opts = { parse_mode: 'HTML' };
     const opts_keyboard = { parse_mode: 'HTML',
         'reply_markup': {
@@ -190,11 +190,14 @@ function getClassTask(chatId, msg, tags, info, callback) {
         var class_item = info.find(item => item.name == class_tag.value);
 
         class_item.tasks.map(task => {
-            var button = msg.text + ' -task ' + task.name;
-            opts_keyboard.reply_markup.keyboard.push([button]);
+            if (!blacklist.includes(task.state)) {
+                var button = msg.text + ' -task ' + task.name;
+                opts_keyboard.reply_markup.keyboard.push([button]);
+            }
         });
 
-        bot.sendMessage(chatId, 'Choose which task you wish to mark / unmark :', opts_keyboard);
+        if (opts_keyboard.reply_markup.keyboard.length == 0) bot.sendMessage(chatId, 'No tasks available for that change!', opts);
+        else bot.sendMessage(chatId, 'Choose which task you wish to mark / unmark :', opts_keyboard);
 
     } else {
         var class_index = info.findIndex(item => item.name == class_tag.value);
@@ -217,7 +220,7 @@ function getClassTask(chatId, msg, tags, info, callback) {
     }
 }
 
-function getEventDescription(chatId, msg, tags, info, callback) {
+function getEventDescription(chatId, msg, tags, info, callback, blacklist = []) {
     const opts = { parse_mode: 'HTML' };
     const opts_keyboard = { parse_mode: 'HTML',
         'reply_markup': {
@@ -233,7 +236,7 @@ function getEventDescription(chatId, msg, tags, info, callback) {
     if (description_tag == undefined) {
         var different_events = []
         info.map(event_item => {
-            if (!different_events.includes(event_item.description)) {
+            if (!different_events.includes(event_item.description) && !blacklist.includes(event_item.state)) {
                 different_events.push(event_item.description);
 
                 var button = msg.text + ' -desc ' + event_item.description;
@@ -241,7 +244,8 @@ function getEventDescription(chatId, msg, tags, info, callback) {
             }
         });
 
-        bot.sendMessage(chatId, 'Choose which event you wish to mark / unmark:', opts_keyboard);
+        if (different_events.length == 0) bot.sendMessage(chatId, 'No events available for that change!', opts);
+        else bot.sendMessage(chatId, 'Choose which event you wish to mark / unmark:', opts_keyboard);
 
     } else {
         var index = []
