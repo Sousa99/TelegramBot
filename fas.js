@@ -20,6 +20,19 @@ client.authorize(function(err, tokens) {
     }
 });
 
+var base_date;
+var classes = [];
+setupConst();
+
+async function setupConst() {
+    var data = await gsGet('REGISTO!C2');
+    base_date = new Date(data.data.values[0]);
+
+    var data = await gsGet('TAREFAS!B3:O3');
+    var classes_name = data.data.values[0].filter(item => item.length != '');
+    for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
+}
+
 async function gsGet(range) {
     const gsapi = google.sheets({version: 'v4', auth: client});
 
@@ -47,8 +60,6 @@ async function gsPost(range, values) {
 }
 
 async function changeValueRegistry(date, index, count, value) {
-    var data = await gsGet('REGISTO!C2')
-    var base_date = new Date(data.data.values[0]);
     var delta_days = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24));
     
     var row = delta_days * 2 + 3;
@@ -65,8 +76,6 @@ async function changeValueRegistry(date, index, count, value) {
 }
 
 async function changeValueTask(date, class_index, task_index, value) {
-    var data = await gsGet('REGISTO!C2')
-    var base_date = new Date(data.data.values[0]);
     var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
     
     var row = delta_weeks * 12 + 5 + task_index;
@@ -80,9 +89,6 @@ async function changeValueTask(date, class_index, task_index, value) {
 }
 
 var getRegistryDay = async function(date) {
-    var data = await gsGet('REGISTO!C2')
-
-    var base_date = new Date(data.data.values[0]);
     var delta_days = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24));
 
     var row = delta_days * 2 + 2;
@@ -114,13 +120,6 @@ var unmarkRegistry = async function(date, index, count) {
 }
 
 var getTasks = async function(date) {
-    var data = await gsGet('TAREFAS!B3:O3');
-    var classes_name = data.data.values[0].filter(item => item.length != '');
-    var classes = []
-    for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
-    
-    var data = await gsGet('REGISTO!C2')
-    var base_date = new Date(data.data.values[0]);
     var delta_weeks = Math.floor(Math.abs(date - base_date) / (1000 * 60 * 60 * 24 * 7));
     
     var row = delta_weeks * 12 + 5;
