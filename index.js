@@ -1,4 +1,5 @@
 var fas = require('./fas.js');
+var date_module = require('./date.js');
 
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
@@ -26,7 +27,7 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
     
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
     var total = tags.find(item => item.tag == '-t') != undefined
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) {
@@ -55,7 +56,7 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to mark!', opts);
         else getEventDescription(chatId, msg, tags, info, fas.markRegistry)
@@ -69,7 +70,7 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to unmark!', opts);
         else getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry)
@@ -83,7 +84,7 @@ bot.onText(/\/show_tasks(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
     var total = tags.find(item => item.tag == '-t') != undefined
     fas.getTasks(date).then(function(info) {
         for (var class_index = 0; class_index < info.length; class_index++) {
@@ -112,7 +113,7 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
         getClassTask(chatId, msg, tags, info, fas.markTask)
     });
@@ -125,7 +126,7 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
     const tags = analyseInput(chatId, match[1]);
     if (tags == -1) return;
 
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
         getClassTask(chatId, msg, tags, info, fas.unmarkTask)
     });
@@ -134,22 +135,6 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
 
 // SUPPORT FUNCTIONS
 bot.on('polling_error', (err) => console.log(err));
-
-function validateDate(dateString) {
-    var date = new Date(dateString)
-    return date instanceof Date && !isNaN(date);
-}
-
-function processDate(chatId, opts, tags) {
-    var date = new Date();
-    var date_value = tags.find(item => item.tag == '-d')
-    if (date_value != undefined) {
-        if (validateDate(date_value.value)) date = new Date(date_value.value);
-        else bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
-    }
-
-    return date;
-}
 
 function analyseInput(chatId, string) {
     var array = string.split(' ').filter(item => item != '');
@@ -188,7 +173,7 @@ function getClassTask(chatId, msg, tags, info, callback) {
             keyboard: []
         }};
 
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
 
     var class_tag = tags.find(item => item.tag == '-class');
     var task_tag = tags.find(item => item.tag == '-task');
@@ -242,7 +227,7 @@ function getEventDescription(chatId, msg, tags, info, callback) {
             keyboard: []
         }};
 
-    var date = processDate(chatId, opts, tags);
+    var date = date_module.processDate(chatId, opts, tags);
     var description_tag = tags.find(item => item.tag == '-desc');
 
     if (description_tag == undefined) {
