@@ -1,6 +1,6 @@
 var moment = require('moment');
 
-function processInAndAgo(date_string) {
+function processRelativeKeywords(date_string) {
     var array = date_string.split(' ');
     var date = moment();
 
@@ -8,8 +8,18 @@ function processInAndAgo(date_string) {
         date = date.add(number, array[2]);
     else if (array.length == 3 && array[2] == 'ago' && (number = parseInt(array[0])) != NaN)
         date = date.add(number, array[1]);
+    else if (array.length == 2 && array[0] == 'last') {
+        date = date.day(array[1]);
+        if (!date.isBefore(moment(), 'day'))
+            date = date.add(-7, 'day');
+    } else if (array.length == 2 && array[0] == 'next') {
+        date = date.day(array[1]);
+        if (!date.isAfter(moment(), 'day'))
+            date = date.add(7, 'day');
+    }
     else return -1;
 
+    console.log(date.toISOString())
     return date;
 }
 
@@ -37,7 +47,7 @@ var processDateTag = function(chatId, opts, tags) {
                 date = new moment(date_value.value, moment.ISO_8601);
                 if (date.isValid()) return;
 
-                date = processInAndAgo(date_value.value);
+                date = processRelativeKeywords(date_value.value);
                 if (date == -1) {
                     bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
                     date = new moment();

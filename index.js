@@ -139,6 +139,7 @@ bot.on('polling_error', (err) => console.log(err));
 function analyseInput(chatId, string) {
     var array = string.split(' ').filter(item => item != '');
     var items = []
+    const opts = { parse_mode: 'HTML' };
     
     for (var index = 0; index < array.length; index++) {
         if (array[index][0] != '-') {
