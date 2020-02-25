@@ -18,8 +18,7 @@ function processRelativeKeywords(date_string) {
             date = date.add(7, 'day');
     }
     else return -1;
-
-    console.log(date.toISOString())
+    
     return date;
 }
 
