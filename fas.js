@@ -23,6 +23,7 @@ client.authorize(function(err, tokens) {
 
 var base_date;
 var classes = [];
+var schedule = {"Monday": {}, "Tuesday": {}, "Wednesday": {}, "Thursday": {}, "Friday": {}, "Saturday": {}, "Sunday": {}};
 setupConst();
 
 function setupConst() {
@@ -34,6 +35,33 @@ function setupConst() {
         var classes_name = data.data.values[0].filter(item => item.length != '');
         for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
     });
+
+    gsGet('HORÁRIO!B2:H2').then(function(data) {
+        var weekDaysPortuguese = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
+        var weekDaysEnglish = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        var weekDays = []
+
+        data.data.values[0].map(function(element) {
+            var indexOf = weekDaysPortuguese.findIndex(weekDay =>  weekDay == element);
+            if (indexOf == -1) console.log("Something went terribly wrong processing weekDays!");
+
+            weekDays.push(weekDaysEnglish[indexOf]);
+        });
+
+        gsGet('HORÁRIO!A3:H38').then(function(data) {
+            data = data.data.values;
+    
+            data.map(function(timeframe) {
+                for (var key in schedule) schedule[key][timeframe[0]] = '';
+
+                var events_time = timeframe.splice(1)
+                for (var event_index in events_time) {
+                    schedule[weekDays[event_index]][timeframe[0]] = events_time[event_index];
+                }
+            });
+        });
+    });
+    
 }
 
 async function gsGet(range) {
