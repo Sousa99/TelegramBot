@@ -1,5 +1,6 @@
 // FAS FUNCTIONS - GOOGLE SHEETS
 var date_module = require('./date.js');
+var moment = require('moment');
 
 const {google} = require('googleapis');
 const google_keys = require('./google_keys.json')
@@ -180,9 +181,23 @@ var unmarkTask = async function(date, class_index, task_index) {
     return changeValueTask(date, class_index, task_index, '');
 }
 
+var checkMarking = async function() {
+    var day = schedule[moment().format('dddd')];
+    var time_str = moment().format('HH:mm:00');
+    var event = day[time_str];
+
+    var time = moment().add(-30, 'minutes');
+    var time_str = time.format('HH:mm:00');
+    var event_before = day[time_str];
+
+    if (event == undefined || event == event_before) return '';
+    return event;
+}
+
 exports.getRegistryDay = getRegistryDay;
 exports.markRegistry = markRegistry;
 exports.unmarkRegistry = unmarkRegistry;
 exports.getTasks = getTasks;
 exports.markTask = markTask;
 exports.unmarkTask = unmarkTask;
+exports.checkMarking = checkMarking;

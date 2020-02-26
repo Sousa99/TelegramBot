@@ -5,6 +5,11 @@
         {"tag": "unmark_registry", "description": "Unmark a specific event" },
         {"tag": "show_tasks", "description": "Display tasks" },
         {"tag": "mark_task", "description": "Mark a specific task as completed" },
-        {"tag": "unmark_task", "description": "Unmark a specific task" }
+        {"tag": "unmark_task", "description": "Unmark a specific task" },
+        {"tag": "schedule", "description": "Start a specific schedule" }
+    ],
+
+    "schedules": [
+        {"tag": "check-registry", "description": "Bot will ask you if you want to register class about to begin"}
     ]
 }

@@ -1,6 +1,8 @@
 var fas = require('./fas.js');
 var date_module = require('./date.js');
 
+var schedule = require('node-schedule');
+
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
 var commands = require('./commands.json');
@@ -133,6 +135,25 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
 
 });
 
+var predefined_chatId;
+bot.onText(/\/schedule check-registry/, function(msg) {
+    console.log("Schedule check_registry");
+    predefined_chatId = msg.chat.id;
+    schedule.scheduleJob('0 */30 * * * *', autoRegistry);
+});
+
+bot.onText(/\/schedule$/, function(msg) {
+    console.log('Showing schedules!');
+    const opts = { parse_mode: 'HTML' };
+    const chatId = msg.chat.id;
+
+    var message = 'This are all the available schedules:\n'
+    commands.schedules.map(command => { 
+        message += '<b>/schedule ' + command.tag + '</b>: ' + command.description + '\n'; })
+    bot.sendMessage(chatId, message, opts);
+});
+
+
 // SUPPORT FUNCTIONS
 bot.on('polling_error', (err) => console.log(err));
 
@@ -264,4 +285,25 @@ function getEventDescription(chatId, msg, tags, info, callback, blacklist = []) 
             else bot.sendMessage(chatId, 'Task marked / unmarked <b>successfully</b>!', opts);
         })
     }
+}
+
+function autoRegistry() {
+    const opts = { parse_mode: 'HTML' };
+    const opts_keyboard = { parse_mode: 'HTML',
+        'reply_markup': {
+            hide_keyboard: true,
+            resize_keyboard: true,
+            one_time_keyboard: true,
+            keyboard: []
+        }};
+    
+    fas.checkMarking().then(function(event) {
+        if (event == '') return;
+    
+        var button = '/mark_registry -desc ' + event;
+        opts_keyboard.reply_markup.keyboard.push([button]);
+        var button = 'No Thanks';
+        opts_keyboard.reply_markup.keyboard.push([button]);
+        bot.sendMessage(predefined_chatId, 'Do you wish to mark this class?', opts_keyboard);
+    });
 }
