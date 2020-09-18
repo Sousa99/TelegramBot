@@ -4,7 +4,7 @@ var moment = require('moment');
 
 const {google} = require('googleapis');
 const google_keys = require('./google_keys.json')
-const FAS_ID = '1WxSZyEqEAxok2joF_Mpckv8yo781pjuQi63kbvIRMmc'
+const FAS_ID = '1XRXbJt1blT-QBHnjzqKtUylu6uKbcjd-QSH-fRqMQdE'
 
 const client = new google.auth.JWT(
     google_keys.client_email,
@@ -28,7 +28,7 @@ var schedule = {"Monday": {}, "Tuesday": {}, "Wednesday": {}, "Thursday": {}, "F
 setupConst();
 
 function setupConst() {
-    gsGet('REGISTO!C2').then(function(data) {
+    gsGet('REGISTO!D2').then(function(data) {
         base_date = date_module.processDateString(data.data.values[0], "DD-MMM-YYYY");
     });
 
@@ -123,7 +123,7 @@ async function changeValueTask(date, class_index, task_index, value) {
 var getRegistryDay = async function(date) {
     var delta_days = date_module.getDelta(date, base_date);
     var row = delta_days * 2 + 2;
-    var range = 'REGISTO!F' + row.toString() + ':N' + (row+1).toString();
+    var range = 'REGISTO!F' + row.toString() + ':O' + (row+1).toString();
 
     data = await gsGet(range);
     var info = []
