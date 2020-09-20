@@ -49,18 +49,27 @@ function setupConst() {
             weekDays.push(weekDaysEnglish[indexOf]);
         });
 
-        gsGet('HORÁRIO!A3:H38').then(function(data) {
-            data = data.data.values;
-    
-            data.map(function(timeframe) {
-                for (var key in schedule) schedule[key][timeframe[0]] = '';
+        gsGet('HORÁRIO!A3:H38').then(function(data_class) {
+            gsGet('SALAS!A3:H38').then(function(data_room) {
+                data_class = data_class.data.values;
+                data_room = data_room.data.values;
+                for (var line_index in data_class) {
+                    let line_classes = data_class[line_index];
+                    let line_rooms = data_room[line_index];
+                    let time = line_classes[0];
+                    let classes = line_classes.splice(1);
+                    let rooms = line_rooms.splice(1);
 
-                var events_time = timeframe.splice(1)
-                for (var event_index in events_time) {
-                    schedule[weekDays[event_index]][timeframe[0]] = events_time[event_index];
+                    for (var key in schedule) schedule[key][time] = null;
+                    for (var index in classes) {
+                        let event = { 'class': classes[index], 'room': rooms[index] };
+
+                        if (classes[index] != '')
+                            schedule[weekDays[index]][time] = event;
+                    }
                 }
             });
-        });
+        });    
     });
     
 }
@@ -183,14 +192,13 @@ var unmarkTask = async function(date, class_index, task_index) {
 
 var checkMarking = async function() {
     var day = schedule[moment().format('dddd')];
-    var time_str = moment().format('HH:mm:00');
-    var event = day[time_str];
+    var time_nextClass = moment.add(10, 'minutes');
+    var time_beforeClass = moment.add(-20, 'minutes');
 
-    var time = moment().add(-30, 'minutes');
-    var time_str = time.format('HH:mm:00');
-    var event_before = day[time_str];
+    var event = day[time_nextClass.format('HH:mm:00')];
+    var event_before = day[time_beforeClass.format('HH:mm:00')];
 
-    if (event == undefined || event == event_before) return '';
+    if (event == undefined || event['class'] == event_before['class']) return null;
     return event;
 }
 

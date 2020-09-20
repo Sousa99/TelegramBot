@@ -139,7 +139,9 @@ var predefined_chatId;
 bot.onText(/\/schedule check-registry/, function(msg) {
     console.log("Schedule check_registry");
     predefined_chatId = msg.chat.id;
-    schedule.scheduleJob('0 */30 * * * *', autoRegistry);
+    
+    schedule.scheduleJob('0 20 * * * *', autoRegistry);
+    schedule.scheduleJob('0 50 * * * *', autoRegistry);
 });
 
 bot.onText(/\/schedule$/, function(msg) {
@@ -298,12 +300,16 @@ function autoRegistry() {
         }};
     
     fas.checkMarking().then(function(event) {
-        if (event == '') return;
+        if (event == null) return;
     
-        var button = '/mark_registry -desc ' + event;
+        var button = '/mark_registry -desc ' + event['class'];
         opts_keyboard.reply_markup.keyboard.push([button]);
         var button = 'No Thanks';
         opts_keyboard.reply_markup.keyboard.push([button]);
-        bot.sendMessage(predefined_chatId, 'Do you wish to mark this class?', opts_keyboard);
+
+        var message = 'Do you wish to mark ' + event['class'] + ' class?\n';
+        message += 'Room: ' + event['room'];
+
+        bot.sendMessage(predefined_chatId, message, opts_keyboard);
     });
 }
