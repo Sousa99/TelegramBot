@@ -192,14 +192,17 @@ var unmarkTask = async function(date, class_index, task_index) {
 
 var checkMarking = async function() {
     var day = schedule[moment().format('dddd')];
-    var time_nextClass = moment.add(10, 'minutes');
-    var time_beforeClass = moment.add(-20, 'minutes');
+    var time_nextClass = moment().add(10, 'minutes');
+    var time_beforeClass = moment().add(-20, 'minutes');
 
     var event = day[time_nextClass.format('HH:mm:00')];
-    var event_before = day[time_beforeClass.format('HH:mm:00')];
+    if (event == null || event == undefined) return null;
 
-    if (event == undefined || event['class'] == event_before['class']) return null;
-    return event;
+    var event_before = day[time_beforeClass.format('HH:mm:00')];
+    if (event_before == null || event_before == undefined) return event;
+
+    if (event['class'] != event_before['class']) return event;
+    return null;
 }
 
 exports.getRegistryDay = getRegistryDay;

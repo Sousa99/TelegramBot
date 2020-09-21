@@ -301,7 +301,7 @@ function autoRegistry() {
     
     fas.checkMarking().then(function(event) {
         if (event == null) return;
-    
+        
         var button = '/mark_registry -desc ' + event['class'];
         opts_keyboard.reply_markup.keyboard.push([button]);
         var button = 'No Thanks';
