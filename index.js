@@ -6,7 +6,9 @@ var schedule = require('node-schedule');
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
 var commands = require('./commands.json');
-var bot = new TelegramBot(tokens.telegram, {polling: true});
+var bot = new TelegramBot(tokens.telegram, {
+    polling: true
+});
 
 bot.onText(/\/start(.*)/, function(msg, match) {
     console.log('Starting Bot!');
