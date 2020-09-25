@@ -25,9 +25,16 @@ client.authorize(function(err, tokens) {
 var base_date;
 var classes = [];
 var schedule = {"Monday": {}, "Tuesday": {}, "Wednesday": {}, "Thursday": {}, "Friday": {}, "Saturday": {}, "Sunday": {}};
+
+var weekDaysPortuguese = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
+var weekDaysEnglish = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 setupConst();
 
-function setupConst() {
+async function setupConst() {
+    base_date = null;
+    classes = [];
+    schedule = {"Monday": {}, "Tuesday": {}, "Wednesday": {}, "Thursday": {}, "Friday": {}, "Saturday": {}, "Sunday": {}};
+
     gsGet('REGISTO!D2').then(function(data) {
         base_date = date_module.processDateString(data.data.values[0], "DD-MMM-YYYY");
     });
@@ -38,8 +45,6 @@ function setupConst() {
     });
 
     gsGet('HORÁRIO!B2:H2').then(function(data) {
-        var weekDaysPortuguese = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
-        var weekDaysEnglish = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         var weekDays = []
 
         data.data.values[0].map(function(element) {
@@ -72,6 +77,10 @@ function setupConst() {
         });    
     });
     
+}
+
+function getSchedule() {
+    return schedule;
 }
 
 async function gsGet(range) {
@@ -205,6 +214,32 @@ var checkMarking = async function() {
     return null;
 }
 
+function printSchedule() {
+    var messages = [];
+    
+    for(var dayIndex in weekDaysEnglish) {
+        var day = weekDaysEnglish[dayIndex];
+        var newDay = "<b>" + day + "</b>\n";
+        
+        var lastClass = '';
+        for(var time of Object.keys(schedule[day])) {
+            if (schedule[day][time] != null && lastClass != schedule[day][time]['class']) {
+                lastClass = schedule[day][time]['class'];
+
+                newDay += "\t" + time + ": " + schedule[day][time]['class'];
+                if (schedule[day][time]['room'] != null)
+                    newDay += " ( <a href=\"" + schedule[day][time]['room'] + "\">Zoom Link</a> )";
+                newDay += "\n";
+            }
+        }
+
+        messages.push(newDay);
+    }
+    return messages;
+}
+
+exports.setupConst = setupConst;
+exports.getSchedule = getSchedule;
 exports.getRegistryDay = getRegistryDay;
 exports.markRegistry = markRegistry;
 exports.unmarkRegistry = unmarkRegistry;
@@ -212,3 +247,4 @@ exports.getTasks = getTasks;
 exports.markTask = markTask;
 exports.unmarkTask = unmarkTask;
 exports.checkMarking = checkMarking;
+exports.printSchedule =printSchedule;

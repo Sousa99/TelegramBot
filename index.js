@@ -2,6 +2,7 @@ var fas = require('./fas.js');
 var date_module = require('./date.js');
 
 var schedule = require('node-schedule');
+schedule_check_registry = false;
 
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
@@ -22,6 +23,26 @@ bot.onText(/\/start(.*)/, function(msg, match) {
     commands.available_commands.map(command => { 
         message += '<b>/' + command.tag + '</b>: ' + command.description + '\n'; })
     bot.sendMessage(chatId, message, opts);
+});
+
+bot.onText(/\/fas_setup/, async function(msg, match) {
+    var chatId = msg.chat.id;
+    const opts = { parse_mode: 'HTML' };
+    
+    await fas.setupConst();
+    bot.sendMessage(chatId, "Clean Setup Done", opts);
+});
+
+bot.onText(/\/fas_print/, async function(msg, match) {
+    var chatId = msg.chat.id;
+    const opts = { parse_mode: 'HTML' };
+
+    var message = "<b>Schedule Check-Registry:</b> " + schedule_check_registry;
+    bot.sendMessage(chatId, message, opts);
+    
+    var messages = fas.printSchedule();
+    for (message in messages)
+        bot.sendMessage(chatId, messages[message], opts);
 });
 
 bot.onText(/\/show_registry(.*)/, function(msg, match) {
@@ -139,11 +160,16 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
 
 var predefined_chatId;
 bot.onText(/\/schedule check-registry/, function(msg) {
+    var chatId = msg.chat.id;
+    const opts = { parse_mode: 'HTML' };
+
     console.log("Schedule check_registry");
     predefined_chatId = msg.chat.id;
+    schedule_check_registry = true;
     
     schedule.scheduleJob('0 20 * * * *', autoRegistry);
     schedule.scheduleJob('0 50 * * * *', autoRegistry);
+    bot.sendMessage(chatId, "Schedule check_registry activated");
 });
 
 bot.onText(/\/schedule$/, function(msg) {

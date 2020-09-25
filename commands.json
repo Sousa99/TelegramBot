@@ -1,5 +1,8 @@
 {
     "available_commands": [
+        {"tag": "start", "description": "General start of Telegram Bot and some informations" },
+        {"tag": "fas_setup", "description": "Update FAS schedule and consts" },
+        {"tag": "fas_print", "description": "Print FAS schedule" },
         {"tag": "show_registry", "description": "Display registry for events" },
         {"tag": "mark_registry", "description": "Mark a specific event as done" },
         {"tag": "unmark_registry", "description": "Unmark a specific event" },
