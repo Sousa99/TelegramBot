@@ -1,7 +1,8 @@
+var schedule = require('node-schedule');
+var logger = require('./logger.js');
 var fas = require('./fas.js');
 var date_module = require('./date.js');
 
-var schedule = require('node-schedule');
 schedule_check_registry = false;
 
 var TelegramBot = require('node-telegram-bot-api');
@@ -11,8 +12,10 @@ var bot = new TelegramBot(tokens.telegram, {
     polling: true
 });
 
+logger.log.warn("Initializing Bot");
+
 bot.onText(/\/start(.*)/, function(msg, match) {
-    console.log('Starting Bot!');
+    logger.log.info('Starting Bot!');
     const opts = { parse_mode: 'HTML' };
     const chatId = msg.chat.id;
 
@@ -46,7 +49,7 @@ bot.onText(/\/fas_print/, async function(msg, match) {
 });
 
 bot.onText(/\/show_registry(.*)/, function(msg, match) {
-    console.log('Showing Registry!');
+    logger.log.info('Showing Registry!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -75,7 +78,7 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/mark_registry(.*)/, function(msg, match) {
-    console.log('Marking Event on Registry!');
+    logger.log.info('Marking Event on Registry!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -89,7 +92,7 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
 })
 
 bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
-    console.log('Unmarking Event on Registry!');
+    logger.log.info('Unmarking Event on Registry!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -103,7 +106,7 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
 })
 
 bot.onText(/\/show_tasks(.*)/, function(msg, match) {
-    console.log('Showing Tasks!');
+    logger.log.info('Showing Tasks!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -132,7 +135,7 @@ bot.onText(/\/show_tasks(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/mark_task(.*)/, function(msg, match) {
-    console.log('Marking Task!');
+    logger.log.info('Marking Task!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -145,7 +148,7 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
 });
 
 bot.onText(/\/unmark_task(.*)/, function(msg, match) {
-    console.log('Unmarking Task!');
+    logger.log.info('Unmarking Task!');
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
     const tags = analyseInput(chatId, match[1]);
@@ -163,7 +166,7 @@ bot.onText(/\/schedule check-registry/, function(msg) {
     var chatId = msg.chat.id;
     const opts = { parse_mode: 'HTML' };
 
-    console.log("Schedule check_registry");
+    logger.log.info("Schedule check_registry");
     predefined_chatId = msg.chat.id;
     schedule_check_registry = true;
     
@@ -173,7 +176,7 @@ bot.onText(/\/schedule check-registry/, function(msg) {
 });
 
 bot.onText(/\/schedule$/, function(msg) {
-    console.log('Showing schedules!');
+    logger.log.info('Showing schedules!');
     const opts = { parse_mode: 'HTML' };
     const chatId = msg.chat.id;
 
@@ -185,7 +188,7 @@ bot.onText(/\/schedule$/, function(msg) {
 
 
 // SUPPORT FUNCTIONS
-bot.on('polling_error', (err) => console.log(err));
+bot.on('polling_error', (err) => logger.log.error(err));
 
 function analyseInput(chatId, string) {
     var array = string.split(' ').filter(item => item != '');

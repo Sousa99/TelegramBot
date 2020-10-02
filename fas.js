@@ -1,4 +1,5 @@
 // FAS FUNCTIONS - GOOGLE SHEETS
+var logger = require('./logger.js');
 var date_module = require('./date.js');
 var moment = require('moment');
 
@@ -12,13 +13,12 @@ const client = new google.auth.JWT(
     google_keys.private_key,
     ['https://www.googleapis.com/auth/spreadsheets']
 );
-
 client.authorize(function(err, tokens) {
     if (err) {
-        console.log(err);
+        logger.log.error('FAS: ', err);
         return;
     } else {
-        console.log('Connected to Google API\'s!');
+        logger.log.info('FAS: Connected to Google API\'s!');
     }
 });
 
@@ -49,7 +49,7 @@ async function setupConst() {
 
         data.data.values[0].map(function(element) {
             var indexOf = weekDaysPortuguese.findIndex(weekDay =>  weekDay == element);
-            if (indexOf == -1) console.log("Something went terribly wrong processing weekDays!");
+            if (indexOf == -1) logger.log.error("Something went terribly wrong processing weekDays!");
 
             weekDays.push(weekDaysEnglish[indexOf]);
         });
