@@ -160,14 +160,6 @@ var getRegistryDay = async function(date) {
     return info;
 }
 
-var markRegistry = async function(date, index, count) {
-    return changeValueRegistry(date, index, count, 'x');
-}
-
-var unmarkRegistry = async function(date, index, count) {
-    return changeValueRegistry(date, index, count, '');
-}
-
 var getTasks = async function(date) {
     var delta_weeks = date_module.getDelta(date, base_date, 'weeks');;
     
@@ -189,14 +181,6 @@ var getTasks = async function(date) {
     };
     
     return classes;
-}
-
-var markTask = async function(date, class_index, task_index) {
-    return changeValueTask(date, class_index, task_index, 'x');
-}
-
-var unmarkTask = async function(date, class_index, task_index) {
-    return changeValueTask(date, class_index, task_index, '');
 }
 
 var checkMarking = async function() {
@@ -241,10 +225,8 @@ function printSchedule() {
 exports.setupConst = setupConst;
 exports.getSchedule = getSchedule;
 exports.getRegistryDay = getRegistryDay;
-exports.markRegistry = markRegistry;
-exports.unmarkRegistry = unmarkRegistry;
 exports.getTasks = getTasks;
-exports.markTask = markTask;
-exports.unmarkTask = unmarkTask;
+exports.changeValueRegistry = changeValueRegistry;
+exports.changeValueTask = changeValueTask;
 exports.checkMarking = checkMarking;
 exports.printSchedule =printSchedule;

@@ -1,3 +1,5 @@
+process.env.NTBA_FIX_319 = 1; // To disable telegram bot api deprecating warning
+
 var schedule = require('node-schedule');
 var logger = require('./logger.js');
 var fas = require('./fas.js');
@@ -143,6 +145,7 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
 
     var date = date_module.processDateTag(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
+        tags.push({"tag": "-value", "value": ""});
         getClassTask(chatId, msg, tags, info, fas.markTask, ['x', 'X', 'Done']);
     });
 });
@@ -156,6 +159,7 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
 
     var date = date_module.processDateTag(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
+        tags.push({"tag": "-value", "value": "x"});
         getClassTask(chatId, msg, tags, info, fas.unmarkTask, [''])
     });
 
@@ -287,6 +291,7 @@ function getEventDescription(chatId, msg, tags, info, callback, blacklist = []) 
 
     var date = date_module.processDateTag(chatId, opts, tags);
     var description_tag = tags.find(item => item.tag == '-desc');
+    var value_tag = tags.find(item => item.tag == '-value');
 
     if (description_tag == undefined) {
         var different_events = []
@@ -313,9 +318,14 @@ function getEventDescription(chatId, msg, tags, info, callback, blacklist = []) 
             return -1;
         }
 
-        callback(date, index[0], index.length).then(function(value) {
+        if (value_tag == undefined) {
+            bot.sendMessage(chatId, 'There was a problem with the value you wish to input!', opts);
+            return -1;
+        }
+
+        callback(date, index[0], index.length, value_tag.value).then(function(value) {
             if (value == -1) bot.sendMessage(chatId, 'There was a problem marking / unmarking the task!', opts);
-            else bot.sendMessage(chatId, 'Task marked / unmarked <b>successfully</b>!', opts);
+            else bot.sendMessage(chatId, 'Value changed <b>successfully</b>!', opts);
         })
     }
 }
@@ -333,7 +343,9 @@ function autoRegistry() {
     fas.checkMarking().then(function(event) {
         if (event == null) return;
         
-        var button = '/mark_registry -desc ' + event['class'];
+        var button = '/mark_registry -desc ' + event['class'] + ' -value x';
+        opts_keyboard.reply_markup.keyboard.push([button]);
+        var button = '/mark_registry -desc ' + event['class'] + ' -value não houve';
         opts_keyboard.reply_markup.keyboard.push([button]);
         var button = 'No Thanks';
         opts_keyboard.reply_markup.keyboard.push([button]);
