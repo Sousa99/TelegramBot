@@ -88,8 +88,9 @@ bot.onText(/\/mark_registry(.*)/, function(msg, match) {
 
     var date = date_module.processDateTag(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
+        tags.push({'tag': '-value', 'value': 'x'});
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to mark!', opts);
-        else getEventDescription(chatId, msg, tags, info, fas.markRegistry, ['x', 'X', 'Done']);
+        else getEventDescription(chatId, msg, tags, info, fas.changeValueRegistry, ['x', 'X', 'Done']);
     });
 })
 
@@ -102,8 +103,9 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
 
     var date = date_module.processDateTag(chatId, opts, tags);
     fas.getRegistryDay(date).then(function(info) {
+        tags.push({'tag': '-value', 'value': ''});
         if (info.length == 0) bot.sendMessage(chatId, 'The schedule is empty! Nothing to unmark!', opts);
-        else getEventDescription(chatId, msg, tags, info, fas.unmarkRegistry, ['']);
+        else getEventDescription(chatId, msg, tags, info, fas.changeValueRegistry, ['']);
     });
 })
 
@@ -145,8 +147,8 @@ bot.onText(/\/mark_task(.*)/, function(msg, match) {
 
     var date = date_module.processDateTag(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
-        tags.push({"tag": "-value", "value": ""});
-        getClassTask(chatId, msg, tags, info, fas.markTask, ['x', 'X', 'Done']);
+        tags.push({'tag': '-value', 'value': 'x'});
+        getClassTask(chatId, msg, tags, info, fas.changeValueTask, ['x', 'X', 'Done']);
     });
 });
 
@@ -159,8 +161,8 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) {
 
     var date = date_module.processDateTag(chatId, opts, tags);
     fas.getTasks(date).then(function(info) {
-        tags.push({"tag": "-value", "value": "x"});
-        getClassTask(chatId, msg, tags, info, fas.unmarkTask, [''])
+        tags.push({'tag': '-value', 'value': ''});
+        getClassTask(chatId, msg, tags, info, fas.changeValueTask, [''])
     });
 
 });
@@ -236,6 +238,7 @@ function getClassTask(chatId, msg, tags, info, callback, blacklist = []) {
 
     var class_tag = tags.find(item => item.tag == '-class');
     var task_tag = tags.find(item => item.tag == '-task');
+    var value_tag = tags.find(item => item.tag == '-value');
 
     if (class_tag == undefined) {
         info.map(class_item => {
@@ -272,7 +275,12 @@ function getClassTask(chatId, msg, tags, info, callback, blacklist = []) {
             return;
         }
 
-        callback(date, class_index, task_index).then(function(value) {
+        if (value_tag == undefined) {
+            bot.sendMessage(chatId, 'There was a problem with the value you wish to input!', opts);
+            return -1;
+        }
+
+        callback(date, class_index, task_index, value_tag.value).then(function(value) {
             if (value == -1) bot.sendMessage(chatId, 'There was a problem marking / unmarking the task!', opts);
             else bot.sendMessage(chatId, 'Task marked / unmarked <b>successfully</b>!', opts);
         })
