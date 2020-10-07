@@ -1,3 +1,5 @@
+var logger = require('./logger.js');
+
 class Tag {
     constructor(name, callback) {
         this.name = name;
@@ -6,7 +8,8 @@ class Tag {
 }
 
 class Command {
-    constructor(callback, tagsList) {
+    constructor(name, callback, tagsList = []) {
+        this.name = name;
         this.callback = callback;
         this.tags = [];
         
@@ -25,8 +28,9 @@ class Command {
         tag.value = value;
     }
 
-    run(opt, msg, bot) {
-        this.callback(this.tags, opt, msg, bot);
+    run(opts, msg, match, bot) {
+        logger.log.info(this.name + ' Command');
+        this.callback(this.tags, opts, msg, match, bot);
     }
 }
 

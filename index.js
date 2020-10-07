@@ -2,49 +2,26 @@ process.env.NTBA_FIX_319 = 1; // To disable telegram bot api deprecating warning
 
 var schedule = require('node-schedule');
 var logger = require('./logger.js');
-var fas = require('./fas.js');
 var date_module = require('./date.js');
 
 schedule_check_registry = false;
 
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
-var commands = require('./commands.json');
 var bot = new TelegramBot(tokens.telegram, { polling: true });
 
 const Commands = require('./commands.js');
+const opts = { parse_mode: 'HTML' };
 
 logger.log.warn("Initializing Bot");
 
-bot.onText(/\/start(.*)/, function(msg, match) {
-    const opts = { parse_mode: 'HTML' };
-    Commands.startCommand.run(opts, msg, bot);
-});
+bot.onText(/\/start(.*)/, function(msg, match) { Commands.start_command.run(opts, msg, match, bot) });
+bot.onText(/\/fas_setup/, function(msg, match) { Commands.fas_setup_command.run(opts, msg, match, bot) });
+bot.onText(/\/fas_print/, async function(msg, match) { Commands.fas_print_command.run(opts, msg, match, bot) });
 
 // SUPPORT FUNCTIONS
 bot.on('polling_error', (err) => logger.log.error(err));
 /*
-bot.onText(/\/start(.*)/, function(msg, match) {
-    logger.log.info('Starting Bot!');
-    const opts = { parse_mode: 'HTML' };
-    const chatId = msg.chat.id;
-
-    var message = 'Hello <b>' + msg.from.first_name + ' ' + msg.from.last_name + '</b>,\n';
-    bot.sendMessage(chatId, message, opts);
-
-    var message = 'This are all the available commands:\n'
-    commands.available_commands.map(command => { 
-        message += '<b>/' + command.tag + '</b>: ' + command.description + '\n'; })
-    bot.sendMessage(chatId, message, opts);
-});
-
-bot.onText(/\/fas_setup/, async function(msg, match) {
-    var chatId = msg.chat.id;
-    const opts = { parse_mode: 'HTML' };
-    
-    await fas.setupConst();
-    bot.sendMessage(chatId, "Clean Setup Done", opts);
-});
 
 bot.onText(/\/fas_print/, async function(msg, match) {
     var chatId = msg.chat.id;
