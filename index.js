@@ -2,7 +2,6 @@ process.env.NTBA_FIX_319 = 1; // To disable telegram bot api deprecating warning
 
 var schedule = require('node-schedule');
 var logger = require('./logger.js');
-var date_module = require('./date.js');
 
 schedule_check_registry = false;
 
@@ -15,30 +14,56 @@ const opts = { parse_mode: 'HTML' };
 
 logger.log.warn("Initializing Bot");
 
-function createCommandAndRun(commandReference, opts, msg, match, bot) {
-    let command = new commandReference();
+function createCommandAndRun(CommandReference, opts, msg, match, bot) {
+    let command = new CommandReference();
+
+    let inputTags = [];
+    if (match[1] != undefined) inputTags = analyseInput(opts, match[1]);
+
+    for (tagIndex in inputTags) {
+        let tagName = inputTags[tagIndex]['tag'];
+        let tagValue = inputTags[tagIndex]['value'];
+        command.setTag(tagName, tagValue);
+    }
+
     command.run(opts, msg, match, bot);
 }
 
 bot.onText(/\/start(.*)/, function(msg, match) { createCommandAndRun(Commands.StartCommand, opts, msg, match, bot) });
 bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.FasSetupCommand, opts, msg, match, bot) });
 bot.onText(/\/fas_print/, async function(msg, match) { createCommandAndRun(Commands.FasPrintCommand, opts, msg, match, bot) });
+bot.onText(/\/show_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowRegistryCommand, opts, msg, match, bot) });
 
 // SUPPORT FUNCTIONS
 bot.on('polling_error', (err) => logger.log.error(err));
-/*
 
-bot.onText(/\/fas_print/, async function(msg, match) {
-    var chatId = msg.chat.id;
-    const opts = { parse_mode: 'HTML' };
-
-    var message = "<b>Schedule Check-Registry:</b> " + schedule_check_registry;
-    bot.sendMessage(chatId, message, opts);
+function analyseInput(opts, string, bot) {
+    var array = string.split(' ').filter(item => item != '');
+    var items = [];
     
-    var messages = fas.printSchedule();
-    for (message in messages)
-        bot.sendMessage(chatId, messages[message], opts);
-});
+    for (var index = 0; index < array.length; index++) {
+        if (array[index][0] != '-') {
+            bot.sendMessage(chatId, 'There was a problem, check your request!', opts);
+            return -1;
+        } else if (index == array.length - 1 || array[index+1][0] == '-') {
+            items.push({'tag': (array[index]).substring(1).toLowerCase()});
+        } else {
+            var counter = 1;
+            var value = '';
+            while (index < array.length - counter && array[index + counter][0] != '-') {
+                value = value + array[index + counter] + ' ';
+                counter++;
+            }
+
+            value = value.slice(0, -1);
+            items.push({'tag': (array[index]).substring(1).toLowerCase(), 'value': value});
+            index += counter - 1;
+        }
+    }
+
+    return items;
+}
+/*
 
 bot.onText(/\/show_registry(.*)/, function(msg, match) {
     logger.log.info('Showing Registry!');

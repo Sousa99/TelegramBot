@@ -1,8 +1,7 @@
 var moment = require('moment');
 
-function processRelativeKeywords(date_string) {
-    var array = date_string.split(' ');
-    var date = moment();
+function processRelativeKeywords(date, tagValue) {
+    var array = tagValue.split(' ');
 
     if (array.length == 3 && array[0] == 'in' && (number = parseInt(array[1])) != NaN)
         date = date.add(number, array[2]);
@@ -22,36 +21,31 @@ function processRelativeKeywords(date_string) {
     return date;
 }
 
-var processDateTag = function(chatId, opts, tags) {
-    var date = new moment();
-    var date_value = tags.find(item => item.tag == '-d')
+var processDateTag = function(chatId, opts, date, tagValue) {
+    switch(tagValue) {
+        case 'yesterday':
+            date = date.add(-1, 'day');
+            break;
+        case 'tomorrow':
+            date = date.add(1, 'day');
+            break;
+        case 'last week':
+        case 'previous week':
+            date = date.add(-1, 'week');
+            break;
+        case 'next week':
+            date = date.add(1, 'week');
+            break;
+        
+        default:
+            date = new moment(tagValue, moment.ISO_8601);
+            if (date.isValid()) return;
 
-    if (date_value != undefined) {
-        switch(date_value.value) {
-            case 'yesterday':
-                date = date.add(-1, 'day');
-                break;
-            case 'tomorrow':
-                date = date.add(1, 'day');
-                break;
-            case 'last week':
-            case 'previous week':
-                date = date.add(-1, 'week');
-                break;
-            case 'next week':
-                date = date.add(1, 'week');
-                break;
-            
-            default:
-                date = new moment(date_value.value, moment.ISO_8601);
-                if (date.isValid()) return;
-
-                date = processRelativeKeywords(date_value.value);
-                if (date == -1) {
-                    bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
-                    date = new moment();
-                }
-        }
+            date = processRelativeKeywords(date, tagValue);
+            if (date == -1) {
+                bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
+                date = new moment();
+            }
     }
 
     return date;
