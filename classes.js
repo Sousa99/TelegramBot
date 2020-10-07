@@ -1,13 +1,13 @@
 var logger = require('./logger.js');
 
-class Tag {
+class TagInterface {
     constructor(name, callback) {
         this.name = name;
         this.callback = callback;
     }
 }
 
-class Command {
+class CommandInterface {
     constructor(name, callback, tagsList = []) {
         this.name = name;
         this.callback = callback;
@@ -34,4 +34,4 @@ class Command {
     }
 }
 
-module.exports = { Tag: Tag, Command: Command }
+module.exports = { TagInterface: TagInterface, CommandInterface: CommandInterface }

@@ -15,9 +15,14 @@ const opts = { parse_mode: 'HTML' };
 
 logger.log.warn("Initializing Bot");
 
-bot.onText(/\/start(.*)/, function(msg, match) { Commands.start_command.run(opts, msg, match, bot) });
-bot.onText(/\/fas_setup/, function(msg, match) { Commands.fas_setup_command.run(opts, msg, match, bot) });
-bot.onText(/\/fas_print/, async function(msg, match) { Commands.fas_print_command.run(opts, msg, match, bot) });
+function createCommandAndRun(commandReference, opts, msg, match, bot) {
+    let command = new commandReference();
+    command.run(opts, msg, match, bot);
+}
+
+bot.onText(/\/start(.*)/, function(msg, match) { createCommandAndRun(Commands.StartCommand, opts, msg, match, bot) });
+bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.FasSetupCommand, opts, msg, match, bot) });
+bot.onText(/\/fas_print/, async function(msg, match) { createCommandAndRun(Commands.FasPrintCommand, opts, msg, match, bot) });
 
 // SUPPORT FUNCTIONS
 bot.on('polling_error', (err) => logger.log.error(err));

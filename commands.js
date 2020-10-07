@@ -2,7 +2,7 @@ var commandsList = require('./commands.json');
 var fas = require('./fas.js');
 
 let classes = require('./classes.js');
-let Command = classes.Command;
+let CommandInterface = classes.CommandInterface;
 
 function start_function(tags, opts, msg, match, bot) {
     let chatId = msg.chat.id;
@@ -33,10 +33,14 @@ function fas_print_function(tags, opts, msg, match, bot) {
         bot.sendMessage(chatId, messages[message], opts);
 }
 
+class StartCommand extends CommandInterface { constructor() { super("Start", start_function) } };
+class FasSetupCommand extends CommandInterface { constructor() { super("Fas Setup", fas_setup_function) } };
+class FasPrintCommand extends CommandInterface { constructor() { super("Fas Print", fas_print_function) } };
+
 const commands = {
-    start_command: new Command("Start", start_function),
-    fas_setup_command: new Command("Fas Setup", fas_setup_function),
-    fas_print_command: new Command("Fas Print", fas_print_function)
+    StartCommand: StartCommand,
+    FasSetupCommand: FasSetupCommand,
+    FasPrintCommand: FasPrintCommand
 }
 
 module.exports = commands;
