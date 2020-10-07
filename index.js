@@ -10,12 +10,20 @@ schedule_check_registry = false;
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./tokens.json');
 var commands = require('./commands.json');
-var bot = new TelegramBot(tokens.telegram, {
-    polling: true
-});
+var bot = new TelegramBot(tokens.telegram, { polling: true });
+
+const Commands = require('./commands.js');
 
 logger.log.warn("Initializing Bot");
 
+bot.onText(/\/start(.*)/, function(msg, match) {
+    const opts = { parse_mode: 'HTML' };
+    Commands.startCommand.run(opts, msg, bot);
+});
+
+// SUPPORT FUNCTIONS
+bot.on('polling_error', (err) => logger.log.error(err));
+/*
 bot.onText(/\/start(.*)/, function(msg, match) {
     logger.log.info('Starting Bot!');
     const opts = { parse_mode: 'HTML' };
@@ -192,10 +200,6 @@ bot.onText(/\/schedule$/, function(msg) {
     bot.sendMessage(chatId, message, opts);
 });
 
-
-// SUPPORT FUNCTIONS
-bot.on('polling_error', (err) => logger.log.error(err));
-
 function analyseInput(chatId, string) {
     var array = string.split(' ').filter(item => item != '');
     var items = []
@@ -364,3 +368,4 @@ function autoRegistry() {
         bot.sendMessage(predefined_chatId, message, opts_keyboard);
     });
 }
+*/
