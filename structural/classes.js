@@ -1,46 +1,82 @@
 var logger = require('../modules/logger.js');
 
 class TagInterface {
-    constructor(name, callback) {
+    constructor(name, callback, verifyCallback, value) {
         this.name = name;
         this.callback = callback;
+        this.verifyCallback = verifyCallback;
+        this.value = value;
+    }
+
+    getName() {
+        return this.name;
+    }
+    getValue() {
+        return this.value;
+    }
+
+    hasCallback() {
+        return this.callback != undefined;
+    }
+
+    setValue(value) {
+        this.value = value;
+    }
+
+    run(tags, opts, msg, match, bot) {
+        logger.log.info('Setting up tag ' + this.name);
+        this.callback(tags, opts, msg, match, bot);
+    }
+
+    async verify(tags, opts, msg, match, bot) {
+        logger.log.info('Verifying tag ' + this.name);
+        if (this.verifyCallback != undefined) {
+            valid = this.verify(tags, opts, msg, match, bot);
+            return valid;
+        }
+
+        return true;
     }
 }
 
 class CommandInterface {
-    constructor(name, callback, tagsList = [], presetTags = []) {
+    constructor(name, callback, tagsList = []) {
         this.name = name;
         this.callback = callback;
-        this.tags = [];
-        
-        for (tagIndex in tagsList) {
-            let nameTag = tagsList[tagsList].name;
-            let callback = tagsList[tagsList].callback;
-
-            let presetTag = presetTags.find(element => element['tag'] == nameTag);
-            if (presetTag != undefined) value = presetTag['value'];
-            else value = undefined;
-
-            tagObject = {'name': nameTag, 'callback': callback, 'value': value};
-            this.tags.push(tagObject);
-        }
+        this.tags = tagsList;
+        this.activeTag = undefined;
     }
 
-    setTag(name, value) {
-        var tag = this.tags.find(element => element['name'] == name);
-        if (tag == undefined) this.tags.push({'tag': name, 'value': value});
-        else tag.value = value;
+    setTag(Tag) {
+        this.tags.push(Tag);
     }
 
     getTag(name) {
-        let tag = this.tags.find(element => element['name'] == name);
-        if (tag == undefined) return undefined;
-        else return tag['value'];
+        let tag = this.tags.find(element => element.getName() == name);
+        return tag;
+    }
+    getActiveTag() {
+        return this.activeTag;
+    }
+    getTags() {
+        return this.tags;
     }
 
     run(opts, msg, match, bot) {
         logger.log.info(this.name + ' Command');
+        this.activeTag = undefined;
+        
+        for (var tagIndex in this.tags) {
+            var tag = this.tags[tagIndex];
+            this.activeTag = tag;
+            if (tag.getValue() == undefined && tag.hasCallback()) {
+                tag.run(this.tags, opts, msg, match, bot);
+                return false;
+            }
+        }
+
         this.callback(this.tags, opts, msg, match, bot);
+        return true;
     }
 }
 

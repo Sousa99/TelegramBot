@@ -10,12 +10,15 @@ var tokens = require('./json/tokens.json');
 var bot = new TelegramBot(tokens.telegram, { polling: true });
 
 const Commands = require('./structural/commands.js');
+const Tags = require('./structural/tags.js');
 const opts = { parse_mode: 'HTML' };
 
 logger.log.warn("Initializing Bot");
+var commandByChatId = {}
 
 function createCommandAndRun(CommandReference, opts, msg, match, bot) {
     let command = new CommandReference();
+    commandByChatId[msg.chat.id] = command;
 
     let inputTags = [];
     if (match[1] != undefined) inputTags = analyseInput(opts, match[1]);
@@ -23,10 +26,13 @@ function createCommandAndRun(CommandReference, opts, msg, match, bot) {
     for (tagIndex in inputTags) {
         let tagName = inputTags[tagIndex]['tag'];
         let tagValue = inputTags[tagIndex]['value'];
-        command.setTag(tagName, tagValue);
+
+        let tag = new Tags[tagName + "_input"](tagValue)
+        command.setTag(tag);
     }
 
-    command.run(opts, msg, match, bot);
+    if (command.run(opts, msg, match, bot))
+        commandByChatId[msg.chat.id] = undefined;
 }
 
 bot.onText(/\/start(.*)/, function(msg, match) { createCommandAndRun(Commands.StartCommand, opts, msg, match, bot) });
@@ -34,6 +40,22 @@ bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.Fa
 bot.onText(/\/fas_print/, async function(msg, match) { createCommandAndRun(Commands.FasPrintCommand, opts, msg, match, bot) });
 bot.onText(/\/show_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowRegistryCommand, opts, msg, match, bot) });
 bot.onText(/\/show_tasks(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowTasksCommand, opts, msg, match, bot) });
+
+bot.onText(/\/mark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkRegistryCommand, opts, msg, match, bot) });
+
+bot.on('message', function(msg) {
+
+    if (commandByChatId[msg.chat.id] != undefined) {
+        let command = commandByChatId[msg.chat.id];
+        let activeTag = command.getActiveTag();
+
+        activeTag.setValue(msg.text);
+        activeTag.verify(command.getTags(), opts, msg, undefined, bot).then(function() {
+            if (command.run(opts, msg, undefined, bot))
+                commandByChatId[msg.chat.id] = undefined;
+        })
+    }
+})
 
 // SUPPORT FUNCTIONS
 bot.on('polling_error', (err) => logger.log.error(err));

@@ -7,6 +7,8 @@ var date_module = require('../modules/date.js');
 let classes = require('./classes.js');
 let CommandInterface = classes.CommandInterface;
 
+const Tags = require('./tags.js');
+
 function start_function(tags, opts, msg, match, bot) {
     let chatId = msg.chat.id;
 
@@ -40,11 +42,11 @@ function show_registry_function(tags, opts, msg, match, bot) {
     var chatId = msg.chat.id;
 
     let now = moment();
-    let dateTag = tags.find(element => element['tag'] == 'd');
-    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag['value']);
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
     else date = now;
     
-    var total = tags.find(element => element['tag'] == 't') != undefined;
+    var total = tags.find(element => element.getName() == 'total') != undefined;
 
     fas.getRegistryDay(date).then(function(info) {
         if (info.length == 0) {
@@ -69,11 +71,11 @@ function show_tasks_function(tags, opts, msg, match, bot) {
     var chatId = msg.chat.id;
 
     let now = moment();
-    let dateTag = tags.find(element => element['tag'] == 'd');
-    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag['value']);
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
     else date = now;
     
-    var total = tags.find(element => element['tag'] == 't') != undefined;
+    var total = tags.find(element => element.getName() == 'total') != undefined;
 
     fas.getTasks(date).then(function(info) {
         for (var class_index = 0; class_index < info.length; class_index++) {
@@ -94,18 +96,50 @@ function show_tasks_function(tags, opts, msg, match, bot) {
     });
 }
 
+function mark_registry_function(tags, opts, msg, match, bot) {
+    var chatId = msg.chat.id;
+
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
+    else date = now;
+
+    let descriptionTag = tags.find(element => element.getName() == 'description');
+    let valueTag = tags.find(element => element.getName() == 'value');
+
+    fas.getRegistryDay(date).then(function(info) {
+        var indexes = []
+        for (var event_index = 0; event_index < info.length; event_index++)
+            if (info[event_index].description == descriptionTag.getValue())
+                indexes.push(event_index);
+        
+        count = indexes.length;
+        index = indexes[0];
+    
+        fas.changeValueRegistry(date, index, count, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(chatId, 'There was a problem marking the registry!', opts);
+            else bot.sendMessage(chatId, 'Registry marked <b>successfully</b>!', opts);
+        });
+    });
+}
+
 class StartCommand extends CommandInterface { constructor() { super("Start", start_function) } };
 class FasSetupCommand extends CommandInterface { constructor() { super("Fas Setup", fas_setup_function) } };
 class FasPrintCommand extends CommandInterface { constructor() { super("Fas Print", fas_print_function) } };
 class ShowRegistryCommand extends CommandInterface { constructor() { super("Show Registry", show_registry_function) } };
 class ShowTasksCommand extends CommandInterface { constructor() { super("Show Tasks", show_tasks_function) } };
 
+let mark_registry_tags = [ new Tags.value_force('x'), new Tags.blacklist_force(['x', 'X', 'Done']), new Tags.description() ]
+class MarkRegistryCommand extends CommandInterface { constructor() { super("Show Tasks", mark_registry_function, mark_registry_tags) } };
+
 const commands = {
     StartCommand: StartCommand,
     FasSetupCommand: FasSetupCommand,
     FasPrintCommand: FasPrintCommand,
     ShowRegistryCommand: ShowRegistryCommand,
-    ShowTasksCommand: ShowTasksCommand
+    ShowTasksCommand: ShowTasksCommand,
+
+    MarkRegistryCommand: MarkRegistryCommand
 }
 
 module.exports = commands;
