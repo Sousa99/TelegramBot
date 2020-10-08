@@ -30,7 +30,7 @@ async function fas_setup_function(tags, opts, msg, match, bot) {
 function fas_print_function(tags, opts, msg, match, bot) {
     let chatId = msg.chat.id;
 
-    var message = "<b>Schedule Check-Registry:</b> " + schedule_check_registry;
+    var message = "<b>Schedule Check-Registry:</b> " + shedule_check_registry_chatIds.includes(chatId);
     bot.sendMessage(chatId, message, opts);
     
     var messages = fas.printSchedule();
@@ -202,11 +202,33 @@ function unmark_task_function(tags, opts, msg, match, bot) {
     });
 }
 
+function schedule_function(tags, opts, msg, match, bot) {
+    const chatId = msg.chat.id;
+
+    var message = 'This are all the available schedules:\n'
+    commandsList.schedules.map(command => { 
+        message += '<b>/schedule ' + command.tag + '</b>: ' + command.description + '\n'; })
+    bot.sendMessage(chatId, message, opts);
+}
+
+var schedule_check_registry_chatIds = [];
+function schedule_check_registry_function(tags, opts, msg, match, bot) {
+    var chatId = msg.chat.id;
+
+    schedule_check_registry_chatIds.push(msg.chat.id);
+    
+    schedule.scheduleJob('0 20 * * * *', undefined);
+    schedule.scheduleJob('0 50 * * * *', undefined);
+    bot.sendMessage(chatId, "Schedule check_registry activated");
+}
+
 class StartCommand extends CommandInterface { constructor() { super("Start", start_function) } };
 class FasSetupCommand extends CommandInterface { constructor() { super("Fas Setup", fas_setup_function) } };
 class FasPrintCommand extends CommandInterface { constructor() { super("Fas Print", fas_print_function) } };
 class ShowRegistryCommand extends CommandInterface { constructor() { super("Show Registry", show_registry_function) } };
 class ShowTasksCommand extends CommandInterface { constructor() { super("Show Tasks", show_tasks_function) } };
+class ScheduleCommand extends CommandInterface { constructor() { super("Schedule", schedule_function) } };
+class ScheduleCheckRegistryCommand extends CommandInterface { constructor() { super("Schedule Check Registry", schedule_check_registry_function) } };
 
 let mark_registry_tags = [ new Tags.value_force('x'), new Tags.blacklist_force(['x', 'X']), new Tags.description_registry() ]
 class MarkRegistryCommand extends CommandInterface { constructor() { super("Marking Registry", mark_registry_function, mark_registry_tags) } };
@@ -223,6 +245,8 @@ const commands = {
     FasPrintCommand: FasPrintCommand,
     ShowRegistryCommand: ShowRegistryCommand,
     ShowTasksCommand: ShowTasksCommand,
+    ScheduleCommand: ScheduleCommand,
+    ScheduleCheckRegistryCommand: ScheduleCheckRegistryCommand,
 
     MarkRegistryCommand: MarkRegistryCommand,
     UnmarkRegistryCommand: UnmarkRegistryCommand,

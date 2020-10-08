@@ -21,7 +21,8 @@ function createCommandAndRun(CommandReference, opts, msg, match, bot) {
     commandByChatId[msg.chat.id] = command;
 
     let inputTags = [];
-    if (match[1] != undefined) inputTags = analyseInput(opts, match[1]);
+    if (match != undefined && match[1] != undefined)
+        inputTags = analyseInput(opts, match[1]);
 
     for (tagIndex in inputTags) {
         let tagName = inputTags[tagIndex]['tag'];
@@ -40,6 +41,8 @@ bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.Fa
 bot.onText(/\/fas_print/, async function(msg, match) { createCommandAndRun(Commands.FasPrintCommand, opts, msg, match, bot) });
 bot.onText(/\/show_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowRegistryCommand, opts, msg, match, bot) });
 bot.onText(/\/show_tasks(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowTasksCommand, opts, msg, match, bot) });
+bot.onText(/\/schedule$/, function(msg) { createCommandAndRun(Commands.ScheduleCommand, opts, msg, undefined, bot) });
+bot.onText(/\/schedule check-registry/, function(msg) { createCommandAndRun(Commands.ScheduleCheckRegistryCommand, opts, msg, undefined, bot) });
 
 bot.onText(/\/mark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkRegistryCommand, opts, msg, match, bot) });
 bot.onText(/\/unmark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.UnmarkRegistryCommand, opts, msg, match, bot) });
@@ -90,32 +93,6 @@ function analyseInput(opts, string, bot) {
     return items;
 }
 /*
-
-var predefined_chatId;
-bot.onText(/\/schedule check-registry/, function(msg) {
-    var chatId = msg.chat.id;
-    const opts = { parse_mode: 'HTML' };
-
-    logger.log.info("Schedule check_registry");
-    predefined_chatId = msg.chat.id;
-    schedule_check_registry = true;
-    
-    schedule.scheduleJob('0 20 * * * *', autoRegistry);
-    schedule.scheduleJob('0 50 * * * *', autoRegistry);
-    bot.sendMessage(chatId, "Schedule check_registry activated");
-});
-
-bot.onText(/\/schedule$/, function(msg) {
-    logger.log.info('Showing schedules!');
-    const opts = { parse_mode: 'HTML' };
-    const chatId = msg.chat.id;
-
-    var message = 'This are all the available schedules:\n'
-    commands.schedules.map(command => { 
-        message += '<b>/schedule ' + command.tag + '</b>: ' + command.description + '\n'; })
-    bot.sendMessage(chatId, message, opts);
-});
-
 function autoRegistry() {
     const opts = { parse_mode: 'HTML' };
     const opts_keyboard = { parse_mode: 'HTML',
