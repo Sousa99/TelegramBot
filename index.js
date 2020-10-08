@@ -1,15 +1,15 @@
 process.env.NTBA_FIX_319 = 1; // To disable telegram bot api deprecating warning
 
 var schedule = require('node-schedule');
-var logger = require('./logger.js');
+var logger = require('./modules/logger.js');
 
 schedule_check_registry = false;
 
 var TelegramBot = require('node-telegram-bot-api');
-var tokens = require('./tokens.json');
+var tokens = require('./json/tokens.json');
 var bot = new TelegramBot(tokens.telegram, { polling: true });
 
-const Commands = require('./commands.js');
+const Commands = require('./structural/commands.js');
 const opts = { parse_mode: 'HTML' };
 
 logger.log.warn("Initializing Bot");

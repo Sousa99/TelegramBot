@@ -1,4 +1,4 @@
-var logger = require('./logger.js');
+var logger = require('../modules/logger.js');
 
 class TagInterface {
     constructor(name, callback) {

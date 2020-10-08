@@ -1,8 +1,8 @@
 var moment = require('moment');
 
-var commandsList = require('./commands.json');
-var fas = require('./fas.js');
-var date_module = require('./date.js');
+var commandsList = require('../json/commands.json');
+var fas = require('../modules/fas.js');
+var date_module = require('../modules/date.js');
 
 let classes = require('./classes.js');
 let CommandInterface = classes.CommandInterface;

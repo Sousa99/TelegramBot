@@ -4,7 +4,7 @@ var date_module = require('./date.js');
 var moment = require('moment');
 
 const {google} = require('googleapis');
-const google_keys = require('./google_keys.json')
+const google_keys = require('../json/google_keys.json')
 const FAS_ID = '1XRXbJt1blT-QBHnjzqKtUylu6uKbcjd-QSH-fRqMQdE'
 
 const client = new google.auth.JWT(
