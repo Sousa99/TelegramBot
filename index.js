@@ -33,6 +33,7 @@ bot.onText(/\/start(.*)/, function(msg, match) { createCommandAndRun(Commands.St
 bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.FasSetupCommand, opts, msg, match, bot) });
 bot.onText(/\/fas_print/, async function(msg, match) { createCommandAndRun(Commands.FasPrintCommand, opts, msg, match, bot) });
 bot.onText(/\/show_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowRegistryCommand, opts, msg, match, bot) });
+bot.onText(/\/show_tasks(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowTasksCommand, opts, msg, match, bot) });
 
 // SUPPORT FUNCTIONS
 bot.on('polling_error', (err) => logger.log.error(err));
@@ -65,35 +66,6 @@ function analyseInput(opts, string, bot) {
 }
 /*
 
-bot.onText(/\/show_registry(.*)/, function(msg, match) {
-    logger.log.info('Showing Registry!');
-    var chatId = msg.chat.id;
-    const opts = { parse_mode: 'HTML' };
-    const tags = analyseInput(chatId, match[1]);
-    if (tags == -1) return;
-    
-    var date = date_module.processDateTag(chatId, opts, tags);
-    var total = tags.find(item => item.tag == '-t') != undefined
-    fas.getRegistryDay(date).then(function(info) {
-        if (info.length == 0) {
-            bot.sendMessage(chatId, 'There was nothing to register that day!');
-            return;
-        }
-
-        var perfect = true;
-        var message = '';
-        for (var activity_index = 0; activity_index < info.length; activity_index++) {
-            current_activity = info[activity_index]
-            message += '<b>' + current_activity.description + '</b> - ' + current_activity.state + '\n'
-            if (!['x', 'X', 'nao houve'].includes(current_activity.state)) perfect = false;
-        }
-
-        if (perfect && !total) bot.sendMessage(chatId, '<b>You attended everything!</b>', opts);
-        else bot.sendMessage(chatId, message, opts);
-    });
-
-});
-
 bot.onText(/\/mark_registry(.*)/, function(msg, match) {
     logger.log.info('Marking Event on Registry!');
     var chatId = msg.chat.id;
@@ -123,35 +95,6 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) {
         else getEventDescription(chatId, msg, tags, info, fas.changeValueRegistry, ['']);
     });
 })
-
-bot.onText(/\/show_tasks(.*)/, function(msg, match) {
-    logger.log.info('Showing Tasks!');
-    var chatId = msg.chat.id;
-    const opts = { parse_mode: 'HTML' };
-    const tags = analyseInput(chatId, match[1]);
-    if (tags == -1) return;
-
-    var date = date_module.processDateTag(chatId, opts, tags);
-    var total = tags.find(item => item.tag == '-t') != undefined
-    fas.getTasks(date).then(function(info) {
-        for (var class_index = 0; class_index < info.length; class_index++) {
-            var perfect = true;
-            current_class = info[class_index];
-
-            var message = '<b>' + current_class.name + '</b>\n';
-            for (var task_index = 0; task_index < current_class.tasks.length; task_index++) {
-                current_task = current_class.tasks[task_index];
-                if (total || current_task.state != 'Done') {
-                    message += current_task.name + ' - ' + current_task.state + '\n';
-                    perfect = false;
-                }
-            }
-
-            if (!perfect) bot.sendMessage(chatId, message, opts);
-        }
-    });
-
-});
 
 bot.onText(/\/mark_task(.*)/, function(msg, match) {
     logger.log.info('Marking Task!');

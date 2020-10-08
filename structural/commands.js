@@ -65,16 +65,47 @@ function show_registry_function(tags, opts, msg, match, bot) {
     });
 }
 
+function show_tasks_function(tags, opts, msg, match, bot) {
+    var chatId = msg.chat.id;
+
+    let now = moment();
+    let dateTag = tags.find(element => element['tag'] == 'd');
+    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag['value']);
+    else date = now;
+    
+    var total = tags.find(element => element['tag'] == 't') != undefined;
+
+    fas.getTasks(date).then(function(info) {
+        for (var class_index = 0; class_index < info.length; class_index++) {
+            var perfect = true;
+            current_class = info[class_index];
+
+            var message = '<b>' + current_class.name + '</b>\n';
+            for (var task_index = 0; task_index < current_class.tasks.length; task_index++) {
+                current_task = current_class.tasks[task_index];
+                if (total || current_task.state != 'Done') {
+                    message += current_task.name + ' - ' + current_task.state + '\n';
+                    perfect = false;
+                }
+            }
+
+            if (!perfect) bot.sendMessage(chatId, message, opts);
+        }
+    });
+}
+
 class StartCommand extends CommandInterface { constructor() { super("Start", start_function) } };
 class FasSetupCommand extends CommandInterface { constructor() { super("Fas Setup", fas_setup_function) } };
 class FasPrintCommand extends CommandInterface { constructor() { super("Fas Print", fas_print_function) } };
 class ShowRegistryCommand extends CommandInterface { constructor() { super("Show Registry", show_registry_function) } };
+class ShowTasksCommand extends CommandInterface { constructor() { super("Show Tasks", show_tasks_function) } };
 
 const commands = {
     StartCommand: StartCommand,
     FasSetupCommand: FasSetupCommand,
     FasPrintCommand: FasPrintCommand,
-    ShowRegistryCommand: ShowRegistryCommand
+    ShowRegistryCommand: ShowRegistryCommand,
+    ShowTasksCommand: ShowTasksCommand
 }
 
 module.exports = commands;
