@@ -104,7 +104,7 @@ function mark_registry_function(tags, opts, msg, match, bot) {
     if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
     else date = now;
 
-    let descriptionTag = tags.find(element => element.getName() == 'description');
+    let descriptionTag = tags.find(element => element.getName() == 'description_registry');
     let valueTag = tags.find(element => element.getName() == 'value');
 
     fas.getRegistryDay(date).then(function(info) {
@@ -123,14 +123,99 @@ function mark_registry_function(tags, opts, msg, match, bot) {
     });
 }
 
+function unmark_registry_function(tags, opts, msg, match, bot) {
+    var chatId = msg.chat.id;
+
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
+    else date = now;
+
+    let descriptionTag = tags.find(element => element.getName() == 'description_registry');
+    let valueTag = tags.find(element => element.getName() == 'value');
+
+    fas.getRegistryDay(date).then(function(info) {
+        var indexes = []
+        for (var event_index = 0; event_index < info.length; event_index++)
+            if (info[event_index].description == descriptionTag.getValue())
+                indexes.push(event_index);
+        
+        count = indexes.length;
+        index = indexes[0];
+    
+        fas.changeValueRegistry(date, index, count, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(chatId, 'There was a problem unmarking the registry!', opts);
+            else bot.sendMessage(chatId, 'Registry unmarked <b>successfully</b>!', opts);
+        });
+    });
+}
+
+function mark_task_function(tags, opts, msg, match, bot) {
+    var chatId = msg.chat.id;
+
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
+    else date = now;
+
+    let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
+    let taskDescriptionTag = tags.find(element => element.getName() == 'task_description');
+    let valueTag = tags.find(element => element.getName() == 'value');
+
+    fas.getTasks(date).then(function(info) {
+        var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
+
+        var class_item = info[class_index];
+        var task_index = class_item.tasks.findIndex(item => item.name == taskDescriptionTag.getValue());
+
+
+        fas.changeValueTask(date, class_index, task_index, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(chatId, 'There was a problem marking the task!', opts);
+            else bot.sendMessage(chatId, 'Task marked <b>successfully</b>!', opts);
+        });
+    });
+}
+
+function unmark_task_function(tags, opts, msg, match, bot) {
+    var chatId = msg.chat.id;
+
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
+    else date = now;
+
+    let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
+    let taskDescriptionTag = tags.find(element => element.getName() == 'task_description');
+    let valueTag = tags.find(element => element.getName() == 'value');
+
+    fas.getTasks(date).then(function(info) {
+        var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
+
+        var class_item = info[class_index];
+        var task_index = class_item.tasks.findIndex(item => item.name == taskDescriptionTag.getValue());
+
+
+        fas.changeValueTask(date, class_index, task_index, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(chatId, 'There was a problem unmarking the task!', opts);
+            else bot.sendMessage(chatId, 'Task unmarked <b>successfully</b>!', opts);
+        });
+    });
+}
+
 class StartCommand extends CommandInterface { constructor() { super("Start", start_function) } };
 class FasSetupCommand extends CommandInterface { constructor() { super("Fas Setup", fas_setup_function) } };
 class FasPrintCommand extends CommandInterface { constructor() { super("Fas Print", fas_print_function) } };
 class ShowRegistryCommand extends CommandInterface { constructor() { super("Show Registry", show_registry_function) } };
 class ShowTasksCommand extends CommandInterface { constructor() { super("Show Tasks", show_tasks_function) } };
 
-let mark_registry_tags = [ new Tags.value_force('x'), new Tags.blacklist_force(['x', 'X', 'Done']), new Tags.description() ]
-class MarkRegistryCommand extends CommandInterface { constructor() { super("Show Tasks", mark_registry_function, mark_registry_tags) } };
+let mark_registry_tags = [ new Tags.value_force('x'), new Tags.blacklist_force(['x', 'X']), new Tags.description_registry() ]
+class MarkRegistryCommand extends CommandInterface { constructor() { super("Marking Registry", mark_registry_function, mark_registry_tags) } };
+let unmark_registry_tags = [ new Tags.value_force(''), new Tags.blacklist_force(['']), new Tags.description_registry() ]
+class UnmarkRegistryCommand extends CommandInterface { constructor() { super("Unmarking Registry", unmark_registry_function, unmark_registry_tags) } };
+let mark_task_tags = [ new Tags.value_force('x'), new Tags.blacklist_force(['x', 'X']), new Tags.class_description(), new Tags.task_description() ]
+class MarkTaskCommand extends CommandInterface { constructor() { super("Marking Tasks", mark_task_function, mark_task_tags) } };
+let unmark_task_tags = [ new Tags.value_force(''), new Tags.blacklist_force(['']), new Tags.class_description(), new Tags.task_description() ]
+class UnmarkTaskCommand extends CommandInterface { constructor() { super("Unmarking Tasks", unmark_task_function, unmark_task_tags) } };
 
 const commands = {
     StartCommand: StartCommand,
@@ -139,7 +224,10 @@ const commands = {
     ShowRegistryCommand: ShowRegistryCommand,
     ShowTasksCommand: ShowTasksCommand,
 
-    MarkRegistryCommand: MarkRegistryCommand
+    MarkRegistryCommand: MarkRegistryCommand,
+    UnmarkRegistryCommand: UnmarkRegistryCommand,
+    MarkTaskCommand: MarkTaskCommand,
+    UnmarkTaskCommand: UnmarkTaskCommand,
 }
 
 module.exports = commands;
