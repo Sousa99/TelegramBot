@@ -23,9 +23,18 @@ class TagInterface {
         this.value = value;
     }
 
+    toString() {
+        var string = this.name + "|"
+        if (this.callback) string += " callback: " + this.callback.name + " |" 
+        if (this.verifyCallback) string += " verify callback: " + this.verifyCallback.name + " |"
+        string += " value: " + this.value;
+
+        return string;
+    }
+
     run(tags, chatInformation) {
         logger.log.info('Setting up tag ' + this.name);
-        this.callback(tags, chatInformation);
+        return this.callback(tags, chatInformation);
     }
 
     async verify(tags, chatInformation) {
@@ -65,16 +74,29 @@ class CommandInterface {
         return this.tags;
     }
 
+    toString() {
+        var string = this.name + "\n"
+        if (this.callback) string += " callback: " + this.callback.name + "\n" 
+        if (this.activeTag) string += " active tag: " + this.activeTag.toString() + "\n" 
+        if (this.tags) {
+            for (index in this.tags)
+                string += this.tags[index].toString() + "\n";
+        }
+
+        return string;
+    }
+
     run() {
         logger.log.info(this.name + ' Command');
+        logger.log.info(this.toString());
         this.activeTag = undefined;
         
         for (var tagIndex in this.tags) {
             var tag = this.tags[tagIndex];
             this.activeTag = tag;
             if (tag.getValue() == undefined && tag.hasCallback()) {
-                tag.run(this.tags, this.chatInformation);
-                return false;
+                var tagAborted = tag.run(this.tags, this.chatInformation);
+                return tagAborted;
             }
         }
 

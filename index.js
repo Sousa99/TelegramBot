@@ -66,10 +66,12 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) { createCommandAndRun(Comma
 
 bot.on('message', function(msg) {
 
-    if (commandByChatId[msg.chat.id] != undefined) {
+    if (msg.text[0] == '/') {
+        commandByChatId[msg.chat.id] = undefined;
+    } else if (commandByChatId[msg.chat.id] != undefined) {
         let command = commandByChatId[msg.chat.id];
         let activeTag = command.getActiveTag();
-
+        
         activeTag.setValue(msg.text);
         activeTag.verify(command.getTags(), new ChatInformation(msg.chat.id, msg, undefined)).then(function() {
             if (command.run())

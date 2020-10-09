@@ -226,14 +226,14 @@ class ShowTasksCommand extends CommandInterface { constructor(chatInformation) {
 class ScheduleCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Schedule", schedule_function) } };
 class ScheduleCheckRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Schedule Check Registry", schedule_check_registry_function) } };
 
-let mark_registry_tags = [ new Tags.value('x'), new Tags.blacklist(['x', 'X']), new Tags.description_registry() ]
-class MarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Registry", mark_registry_function, mark_registry_tags) } };
-let unmark_registry_tags = [ new Tags.value(''), new Tags.blacklist(['']), new Tags.description_registry() ]
-class UnmarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Registry", unmark_registry_function, unmark_registry_tags) } };
-let mark_task_tags = [ new Tags.value('x'), new Tags.blacklist(['x', 'X']), new Tags.class_description(), new Tags.task_description() ]
-class MarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Tasks", mark_task_function, mark_task_tags) } };
-let unmark_task_tags = [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ]
-class UnmarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Tasks", unmark_task_function, unmark_task_tags) } };
+function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X']), new Tags.description_registry() ] };
+class MarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Registry", mark_registry_function, mark_registry_tags()) } };
+function unmark_registry_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.description_registry() ] };
+class UnmarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Registry", unmark_registry_function, unmark_registry_tags()) } };
+function mark_task_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X']), new Tags.class_description(), new Tags.task_description() ] };
+class MarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Tasks", mark_task_function, mark_task_tags()) } };
+function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ] };
+class UnmarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
 
 const commands = {
     StartCommand: StartCommand,

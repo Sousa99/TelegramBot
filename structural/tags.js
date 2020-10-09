@@ -21,14 +21,18 @@ function description_registry_callback(tags, chatInformation) {
         info.map(event_item => {
             if (!different_events.includes(event_item.description) && !blacklist.includes(event_item.state)) {
                 different_events.push(event_item.description);
-                console.log(opts);
 
                 opts['keyboard'].reply_markup.keyboard.push([event_item.description]);
             }
         });
 
-        if (different_events.length == 0) bot.sendMessage(chatInformation.chatId, 'No events available for that change!', opts['normal']);
-        else bot.sendMessage(chatInformation.chatId, 'Choose which event:', opts['keyboard']);
+        if (different_events.length == 0) {
+            bot.sendMessage(chatInformation.chatId, 'No events available for that change!', opts['normal']);
+            return true;
+        } else {
+            bot.sendMessage(chatInformation.chatId, 'Choose which event:', opts['keyboard']);
+            return false;
+        }    
     });
 }
 
@@ -74,8 +78,13 @@ function task_description_callback(tags, chatInformation) {
                 opts['keyboard'].reply_markup.keyboard.push([task.name]);
         });
 
-        if (opts['keyboard'].reply_markup.keyboard.length == 0) bot.sendMessage(chatInformation.chatId, 'No tasks available for that change!', opts['normal']);
-        else bot.sendMessage(chatInformation.chatId, 'Choose which task:', opts['keyboard']);
+        if (opts['keyboard'].reply_markup.keyboard.length == 0) {
+            bot.sendMessage(chatInformation.chatId, 'No tasks available for that change!', opts['normal']);
+            return true;
+        } else {
+            bot.sendMessage(chatInformation.chatId, 'Choose which task:', opts['keyboard']);
+            return false;
+        }   
     });
 }
 

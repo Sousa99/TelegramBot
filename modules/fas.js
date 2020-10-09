@@ -113,7 +113,7 @@ async function changeValueRegistry(date, index, count, value) {
     var delta_days = date_module.getDelta(date, base_date);
     
     var row = delta_days * 2 + 3;
-    var letter = String.fromCharCode('F'.charCodeAt(0) +index);
+    var letter = String.fromCharCode('F'.charCodeAt(0) + index);
     
     var range = 'REGISTO!' + letter + row.toString();
     var values = [];
