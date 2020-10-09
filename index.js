@@ -9,45 +9,65 @@ var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./json/tokens.json');
 var bot = new TelegramBot(tokens.telegram, { polling: true });
 
+const ChatInformation = require('./structural/classes.js').ChatInformation;
 const Commands = require('./structural/commands.js');
 const Tags = require('./structural/tags.js');
-const opts = { parse_mode: 'HTML' };
+
+function createTextOpts() {
+    var opts = { 
+        'normal': {parse_mode: 'HTML' },
+        'keyboard': {
+            parse_mode: 'HTML',
+            'reply_markup': {
+                hide_keyboard: true,
+                resize_keyboard: true,
+                one_time_keyboard: true,
+                keyboard: []
+            }
+        }
+
+    }
+
+    return opts;
+};
 
 logger.log.warn("Initializing Bot");
 var commandByChatId = {}
 
-function createCommandAndRun(CommandReference, opts, msg, match, bot) {
-    let command = new CommandReference();
-    commandByChatId[msg.chat.id] = command;
+function createCommandAndRun(CommandReference, chatInformation) {
+    let command = new CommandReference(chatInformation);
+    let match = chatInformation.match;
+
+    commandByChatId[chatInformation.chatId] = command;
 
     let inputTags = [];
     if (match != undefined && match[1] != undefined)
-        inputTags = analyseInput(opts, match[1]);
+        inputTags = analyseInput(chatInformation.opts, match[1], chatInformation.bot);
 
     for (tagIndex in inputTags) {
         let tagName = inputTags[tagIndex]['tag'];
         let tagValue = inputTags[tagIndex]['value'];
 
-        let tag = new Tags[tagName + "_input"](tagValue)
+        let tag = new Tags[tagName](tagValue)
         command.setTag(tag);
     }
 
-    if (command.run(opts, msg, match, bot))
-        commandByChatId[msg.chat.id] = undefined;
+    if (command.run())
+        commandByChatId[chatInformation.chatId] = undefined;
 }
 
-bot.onText(/\/start(.*)/, function(msg, match) { createCommandAndRun(Commands.StartCommand, opts, msg, match, bot) });
-bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.FasSetupCommand, opts, msg, match, bot) });
-bot.onText(/\/fas_print/, async function(msg, match) { createCommandAndRun(Commands.FasPrintCommand, opts, msg, match, bot) });
-bot.onText(/\/show_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowRegistryCommand, opts, msg, match, bot) });
-bot.onText(/\/show_tasks(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowTasksCommand, opts, msg, match, bot) });
-bot.onText(/\/schedule$/, function(msg) { createCommandAndRun(Commands.ScheduleCommand, opts, msg, undefined, bot) });
-bot.onText(/\/schedule check-registry/, function(msg) { createCommandAndRun(Commands.ScheduleCheckRegistryCommand, opts, msg, undefined, bot) });
+bot.onText(/\/start(.*)/, function(msg, match) { createCommandAndRun(Commands.StartCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.FasSetupCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/fas_print/, async function(msg, match) { createCommandAndRun(Commands.FasPrintCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/show_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowRegistryCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/show_tasks(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowTasksCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/schedule$/, function(msg) { createCommandAndRun(Commands.ScheduleCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, undefined, bot)) });
+bot.onText(/\/schedule check-registry/, function(msg) { createCommandAndRun(Commands.ScheduleCheckRegistryCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, undefined, bot)) });
 
-bot.onText(/\/mark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkRegistryCommand, opts, msg, match, bot) });
-bot.onText(/\/unmark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.UnmarkRegistryCommand, opts, msg, match, bot) });
-bot.onText(/\/mark_task(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkTaskCommand, opts, msg, match, bot) });
-bot.onText(/\/unmark_task(.*)/, function(msg, match) { createCommandAndRun(Commands.UnmarkTaskCommand, opts, msg, match, bot) });
+bot.onText(/\/mark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkRegistryCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/unmark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.UnmarkRegistryCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/mark_task(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkTaskCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
+bot.onText(/\/unmark_task(.*)/, function(msg, match) { createCommandAndRun(Commands.UnmarkTaskCommand, new ChatInformation(createTextOpts(), msg.chat.id, msg, match, bot)) });
 
 bot.on('message', function(msg) {
 
@@ -56,8 +76,8 @@ bot.on('message', function(msg) {
         let activeTag = command.getActiveTag();
 
         activeTag.setValue(msg.text);
-        activeTag.verify(command.getTags(), opts, msg, undefined, bot).then(function() {
-            if (command.run(opts, msg, undefined, bot))
+        activeTag.verify(command.getTags(), new ChatInformation(createTextOpts(), msg.chat.id, msg, undefined, bot)).then(function() {
+            if (command.run())
                 commandByChatId[msg.chat.id] = undefined;
         })
     }
@@ -72,7 +92,7 @@ function analyseInput(opts, string, bot) {
     
     for (var index = 0; index < array.length; index++) {
         if (array[index][0] != '-') {
-            bot.sendMessage(chatId, 'There was a problem, check your request!', opts);
+            bot.sendMessage(chatId, 'There was a problem, check your request!', opts['normal']);
             return -1;
         } else if (index == array.length - 1 || array[index+1][0] == '-') {
             items.push({'tag': (array[index]).substring(1).toLowerCase()});

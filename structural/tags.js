@@ -5,19 +5,12 @@ let TagInterface = classes.TagInterface;
 
 var fas = require('../modules/fas.js');
 
-function description_registry_callback(tags, opts, msg, match, bot) {
-    var chatId = msg.chat.id;
-    const opts_keyboard = { parse_mode: 'HTML',
-        'reply_markup': {
-            hide_keyboard: true,
-            resize_keyboard: true,
-            one_time_keyboard: true,
-            keyboard: []
-    }};
+function description_registry_callback(tags, chatInformation) {
+    chatInformation.opts['keyboard'].reply_markup.keyboard = [];
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, chatInformation.opts['normal'], now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -30,28 +23,21 @@ function description_registry_callback(tags, opts, msg, match, bot) {
             if (!different_events.includes(event_item.description) && !blacklist.includes(event_item.state)) {
                 different_events.push(event_item.description);
 
-                opts_keyboard.reply_markup.keyboard.push([event_item.description]);
+                chatInformation.opts['keyboard'].reply_markup.keyboard.push([event_item.description]);
             }
         });
 
-        if (different_events.length == 0) bot.sendMessage(chatId, 'No events available for that change!', opts);
-        else bot.sendMessage(chatId, 'Choose which event:', opts_keyboard);
+        if (different_events.length == 0) chatInformation.bot.sendMessage(chatInformation.chatId, 'No events available for that change!', chatInformation.opts['normal']);
+        else chatInformation.bot.sendMessage(chatInformation.chatId, 'Choose which event:', chatInformation.opts['keyboard']);
     });
 }
 
-function class_description_callback(tags, opts, msg, match, bot) {
-    var chatId = msg.chat.id;
-    const opts_keyboard = { parse_mode: 'HTML',
-        'reply_markup': {
-            hide_keyboard: true,
-            resize_keyboard: true,
-            one_time_keyboard: true,
-            keyboard: []
-    }};
+function class_description_callback(tags, chatInformation) {
+    chatInformation.opts['keyboard'].reply_markup.keyboard = [];
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, chatInformation.opts['normal'], now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -60,26 +46,19 @@ function class_description_callback(tags, opts, msg, match, bot) {
 
     fas.getTasks(date).then(function(info) {
         info.map(class_item => {
-            opts_keyboard.reply_markup.keyboard.push([class_item.name]);
+            chatInformation.opts['keyboard'].reply_markup.keyboard.push([class_item.name]);
         });
 
-        bot.sendMessage(chatId, 'Choose which class:', opts_keyboard);
+        chatInformation.bot.sendMessage(chatInformation.chatId, 'Choose which class:', chatInformation.opts['keyboard']);
     });
 }
 
-function task_description_callback(tags, opts, msg, match, bot) {
-    var chatId = msg.chat.id;
-    const opts_keyboard = { parse_mode: 'HTML',
-        'reply_markup': {
-            hide_keyboard: true,
-            resize_keyboard: true,
-            one_time_keyboard: true,
-            keyboard: []
-    }};
-
+function task_description_callback(tags, chatInformation) {
+    chatInformation.opts['keyboard'].reply_markup.keyboard = [];
+    
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatId, opts, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, chatInformation.opts['normal'], now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -94,31 +73,28 @@ function task_description_callback(tags, opts, msg, match, bot) {
 
         class_item.tasks.map(task => {
             if (!blacklist.includes(task.state))
-                opts_keyboard.reply_markup.keyboard.push([task.name]);
+                chatInformation.opts['keyboard'].reply_markup.keyboard.push([task.name]);
         });
 
-        if (opts_keyboard.reply_markup.keyboard.length == 0) bot.sendMessage(chatId, 'No tasks available for that change!', opts);
-        else bot.sendMessage(chatId, 'Choose which task:', opts_keyboard);
+        if (chatInformation.opts['keyboard'].reply_markup.keyboard.length == 0) chatInformation.bot.sendMessage(chatInformation.chatId, 'No tasks available for that change!', chatInformation.opts['normal']);
+        else chatInformation.bot.sendMessage(chatInformation.chatId, 'Choose which task:', chatInformation.opts['keyboard']);
     });
 }
 
-class DateInputTag extends TagInterface { constructor(value) { super("date", undefined, undefined, value) } };
-class TotalInputTag extends TagInterface { constructor() { super("total", undefined, undefined, true) } };
+class TotalTag extends TagInterface { constructor() { super("total", undefined, undefined, true) } };
 
-class ValueForceTag extends TagInterface { constructor(value) { super("value", undefined, undefined, value) } };
-class BlacklistForceTag extends TagInterface { constructor(value) { super("blacklist", undefined, undefined, value)}}
-
-class DescriptionRegistryTag extends TagInterface { constructor() { super("description_registry", description_registry_callback, undefined, undefined) } };
-class ClassDescriptionTag extends TagInterface { constructor() { super("class_description", class_description_callback, undefined, undefined) } };
-class TaskDescriptionTag extends TagInterface { constructor() { super("task_description", task_description_callback, undefined, undefined) } };
+class DateTag extends TagInterface { constructor(value) { super("date", undefined, undefined, value) } };
+class ValueTag extends TagInterface { constructor(value) { super("value", undefined, undefined, value) } };
+class BlacklistTag extends TagInterface { constructor(value) { super("blacklist", undefined, undefined, value)}}
+class DescriptionRegistryTag extends TagInterface { constructor(value) { super("description_registry", description_registry_callback, undefined, value) } };
+class ClassDescriptionTag extends TagInterface { constructor(value) { super("class_description", class_description_callback, undefined, value) } };
+class TaskDescriptionTag extends TagInterface { constructor(value) { super("task_description", task_description_callback, undefined, value) } };
 
 const commands = {
-    'date_input': DateInputTag,
-    'total_input': TotalInputTag,
-
-    'value_force': ValueForceTag,
-    'blacklist_force': BlacklistForceTag,
-
+    'date': DateTag,
+    'total': TotalTag,
+    'value': ValueTag,
+    'blacklist': BlacklistTag,
     'description_registry': DescriptionRegistryTag,
     'class_description': ClassDescriptionTag,
     'task_description': TaskDescriptionTag,

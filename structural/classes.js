@@ -40,7 +40,8 @@ class TagInterface {
 }
 
 class CommandInterface {
-    constructor(name, callback, tagsList = []) {
+    constructor(chatInformation, name, callback, tagsList = []) {
+        this.chatInformation = chatInformation;
         this.name = name;
         this.callback = callback;
         this.tags = tagsList;
@@ -48,7 +49,9 @@ class CommandInterface {
     }
 
     setTag(Tag) {
-        this.tags.push(Tag);
+        existingTag = this.tags.find(element => element.getName() == Tag.getName());
+        if (existingTag != undefined) existingTag.setValue(Tag.getValue());
+        else this.tags.push(Tag);
     }
 
     getTag(name) {
@@ -62,7 +65,7 @@ class CommandInterface {
         return this.tags;
     }
 
-    run(opts, msg, match, bot) {
+    run() {
         logger.log.info(this.name + ' Command');
         this.activeTag = undefined;
         
@@ -70,14 +73,28 @@ class CommandInterface {
             var tag = this.tags[tagIndex];
             this.activeTag = tag;
             if (tag.getValue() == undefined && tag.hasCallback()) {
-                tag.run(this.tags, opts, msg, match, bot);
+                tag.run(this.tags, this.chatInformation);
                 return false;
             }
         }
 
-        this.callback(this.tags, opts, msg, match, bot);
+        this.callback(this.tags, this.chatInformation);
         return true;
     }
 }
 
-module.exports = { TagInterface: TagInterface, CommandInterface: CommandInterface }
+class ChatInformation {
+    constructor(opts, chatId, msg, match, bot) {
+        this.opts = opts;
+        this.chatId = chatId;
+        this.msg = msg;
+        this.match = match;
+        this.bot = bot;
+    }
+}
+
+module.exports = {
+    TagInterface: TagInterface,
+    CommandInterface: CommandInterface,
+    ChatInformation: ChatInformation,
+}
