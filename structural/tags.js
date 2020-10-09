@@ -6,11 +6,10 @@ let TagInterface = classes.TagInterface;
 var fas = require('../modules/fas.js');
 
 function description_registry_callback(tags, chatInformation) {
-    chatInformation.opts['keyboard'].reply_markup.keyboard = [];
-
+    var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, chatInformation.opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -22,22 +21,22 @@ function description_registry_callback(tags, chatInformation) {
         info.map(event_item => {
             if (!different_events.includes(event_item.description) && !blacklist.includes(event_item.state)) {
                 different_events.push(event_item.description);
+                console.log(opts);
 
-                chatInformation.opts['keyboard'].reply_markup.keyboard.push([event_item.description]);
+                opts['keyboard'].reply_markup.keyboard.push([event_item.description]);
             }
         });
 
-        if (different_events.length == 0) chatInformation.bot.sendMessage(chatInformation.chatId, 'No events available for that change!', chatInformation.opts['normal']);
-        else chatInformation.bot.sendMessage(chatInformation.chatId, 'Choose which event:', chatInformation.opts['keyboard']);
+        if (different_events.length == 0) bot.sendMessage(chatInformation.chatId, 'No events available for that change!', opts['normal']);
+        else bot.sendMessage(chatInformation.chatId, 'Choose which event:', opts['keyboard']);
     });
 }
 
 function class_description_callback(tags, chatInformation) {
-    chatInformation.opts['keyboard'].reply_markup.keyboard = [];
-
+    var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, chatInformation.opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -46,19 +45,18 @@ function class_description_callback(tags, chatInformation) {
 
     fas.getTasks(date).then(function(info) {
         info.map(class_item => {
-            chatInformation.opts['keyboard'].reply_markup.keyboard.push([class_item.name]);
+            opts['keyboard'].reply_markup.keyboard.push([class_item.name]);
         });
 
-        chatInformation.bot.sendMessage(chatInformation.chatId, 'Choose which class:', chatInformation.opts['keyboard']);
+        bot.sendMessage(chatInformation.chatId, 'Choose which class:', opts['keyboard']);
     });
 }
 
 function task_description_callback(tags, chatInformation) {
-    chatInformation.opts['keyboard'].reply_markup.keyboard = [];
-    
+    var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, chatInformation.opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -73,11 +71,11 @@ function task_description_callback(tags, chatInformation) {
 
         class_item.tasks.map(task => {
             if (!blacklist.includes(task.state))
-                chatInformation.opts['keyboard'].reply_markup.keyboard.push([task.name]);
+                opts['keyboard'].reply_markup.keyboard.push([task.name]);
         });
 
-        if (chatInformation.opts['keyboard'].reply_markup.keyboard.length == 0) chatInformation.bot.sendMessage(chatInformation.chatId, 'No tasks available for that change!', chatInformation.opts['normal']);
-        else chatInformation.bot.sendMessage(chatInformation.chatId, 'Choose which task:', chatInformation.opts['keyboard']);
+        if (opts['keyboard'].reply_markup.keyboard.length == 0) bot.sendMessage(chatInformation.chatId, 'No tasks available for that change!', opts['normal']);
+        else bot.sendMessage(chatInformation.chatId, 'Choose which task:', opts['keyboard']);
     });
 }
 

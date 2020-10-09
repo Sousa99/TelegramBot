@@ -23,15 +23,15 @@ class TagInterface {
         this.value = value;
     }
 
-    run(tags, opts, msg, match, bot) {
+    run(tags, chatInformation) {
         logger.log.info('Setting up tag ' + this.name);
-        this.callback(tags, opts, msg, match, bot);
+        this.callback(tags, chatInformation);
     }
 
-    async verify(tags, opts, msg, match, bot) {
+    async verify(tags, chatInformation) {
         logger.log.info('Verifying tag ' + this.name);
         if (this.verifyCallback != undefined) {
-            valid = this.verify(tags, opts, msg, match, bot);
+            valid = this.verify(tags, chatInformation);
             return valid;
         }
 
@@ -49,7 +49,7 @@ class CommandInterface {
     }
 
     setTag(Tag) {
-        existingTag = this.tags.find(element => element.getName() == Tag.getName());
+        var existingTag = this.tags.find(element => element.getName() == Tag.getName());
         if (existingTag != undefined) existingTag.setValue(Tag.getValue());
         else this.tags.push(Tag);
     }
@@ -84,12 +84,10 @@ class CommandInterface {
 }
 
 class ChatInformation {
-    constructor(opts, chatId, msg, match, bot) {
-        this.opts = opts;
+    constructor(chatId, msg, match) {
         this.chatId = chatId;
         this.msg = msg;
         this.match = match;
-        this.bot = bot;
     }
 }
 

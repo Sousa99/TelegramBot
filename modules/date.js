@@ -21,7 +21,8 @@ function processRelativeKeywords(date, tagValue) {
     return date;
 }
 
-var processDateTag = function(chatId, opts, date, tagValue) {
+var processDateTag = function(chatId, date, tagValue) {
+    var opts = modelForOpts();
     switch(tagValue) {
         case 'yesterday':
             date = date.add(-1, 'day');
@@ -43,7 +44,7 @@ var processDateTag = function(chatId, opts, date, tagValue) {
 
             date = processRelativeKeywords(date, tagValue);
             if (date == -1) {
-                bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts);
+                bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts['normal']);
                 date = new moment();
             }
     }
