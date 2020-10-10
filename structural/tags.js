@@ -40,7 +40,7 @@ function class_description_callback(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -60,7 +60,7 @@ function task_description_callback(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');

@@ -76,10 +76,10 @@ class CommandInterface {
 
     toString() {
         var string = this.name + "\n"
-        if (this.callback) string += " callback: " + this.callback.name + "\n" 
-        if (this.activeTag) string += " active tag: " + this.activeTag.toString() + "\n" 
+        if (this.callback) string += "callback: " + this.callback.name + "\n" 
+        if (this.activeTag) string += "active tag: " + this.activeTag.toString() + "\n" 
         if (this.tags) {
-            for (index in this.tags)
+            for (var index in this.tags)
                 string += this.tags[index].toString() + "\n";
         }
 

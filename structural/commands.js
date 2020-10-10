@@ -42,7 +42,7 @@ function show_registry_function(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
@@ -70,7 +70,7 @@ function show_tasks_function(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
@@ -98,7 +98,7 @@ function mark_registry_function(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
     let descriptionTag = tags.find(element => element.getName() == 'description_registry');
@@ -124,7 +124,7 @@ function unmark_registry_function(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
     let descriptionTag = tags.find(element => element.getName() == 'description_registry');
@@ -150,7 +150,7 @@ function mark_task_function(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
@@ -175,7 +175,7 @@ function unmark_task_function(tags, chatInformation) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, opts['normal'], now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
