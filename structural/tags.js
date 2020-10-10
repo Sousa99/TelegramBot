@@ -4,6 +4,7 @@ let classes = require('./classes.js');
 let TagInterface = classes.TagInterface;
 
 var fas = require('../modules/fas.js');
+var date_module = require('../modules/date.js');
 
 function description_registry_callback(tags, chatInformation) {
     var opts = modelForOpts();
