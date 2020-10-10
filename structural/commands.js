@@ -95,105 +95,27 @@ function show_tasks_function(tags, chatInformation) {
 }
 
 function mark_registry_function(tags, chatInformation) {
-    var opts = modelForOpts();
-    let now = moment();
-    let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
-    else date = now;
-
-    let descriptionTag = tags.find(element => element.getName() == 'description_registry');
-    let valueTag = tags.find(element => element.getName() == 'value');
-
-    fas.getRegistryDay(date).then(function(info) {
-        var indexes = []
-        for (var event_index = 0; event_index < info.length; event_index++)
-            if (info[event_index].description == descriptionTag.getValue())
-                indexes.push(event_index);
-        
-        count = indexes.length;
-        index = indexes[0];
-    
-        fas.changeValueRegistry(date, index, count, valueTag.getValue()).then(function(value) {
-            if (value == -1) bot.sendMessage(chatInformation.chatId, 'There was a problem marking the registry!', opts['normal']);
-            else bot.sendMessage(chatInformation.chatId, 'Registry marked <b>successfully</b>!', opts['normal']);
-        });
-    });
+    let successMessage = 'Registry marked <b>successfully</b>!';
+    let errorMessage = 'There was a problem marking the registry!';
+    changeValueRegistry(tags, chatInformation, successMessage, errorMessage);
 }
 
 function unmark_registry_function(tags, chatInformation) {
-    var opts = modelForOpts();
-    let now = moment();
-    let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
-    else date = now;
-
-    let descriptionTag = tags.find(element => element.getName() == 'description_registry');
-    let valueTag = tags.find(element => element.getName() == 'value');
-
-    fas.getRegistryDay(date).then(function(info) {
-        var indexes = []
-        for (var event_index = 0; event_index < info.length; event_index++)
-            if (info[event_index].description == descriptionTag.getValue())
-                indexes.push(event_index);
-        
-        count = indexes.length;
-        index = indexes[0];
-    
-        fas.changeValueRegistry(date, index, count, valueTag.getValue()).then(function(value) {
-            if (value == -1) bot.sendMessage(chatInformation.chatId, 'There was a problem unmarking the registry!', opts['normal']);
-            else bot.sendMessage(chatInformation.chatId, 'Registry unmarked <b>successfully</b>!', opts['normal']);
-        });
-    });
+    let successMessage = 'Registry unmarked <b>successfully</b>!';
+    let errorMessage = 'There was a problem unmarking the registry!';
+    changeValueRegistry(tags, chatInformation, successMessage, errorMessage);
 }
 
 function mark_task_function(tags, chatInformation) {
-    var opts = modelForOpts();
-    let now = moment();
-    let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
-    else date = now;
-
-    let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
-    let taskDescriptionTag = tags.find(element => element.getName() == 'task_description');
-    let valueTag = tags.find(element => element.getName() == 'value');
-
-    fas.getTasks(date).then(function(info) {
-        var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
-
-        var class_item = info[class_index];
-        var task_index = class_item.tasks.findIndex(item => item.name == taskDescriptionTag.getValue());
-
-
-        fas.changeValueTask(date, class_index, task_index, valueTag.getValue()).then(function(value) {
-            if (value == -1) bot.sendMessage(chatInformation.chatId, 'There was a problem marking the task!', opts['normal']);
-            else bot.sendMessage(chatInformation.chatId, 'Task marked <b>successfully</b>!', opts['normal']);
-        });
-    });
+    let successMessage = 'Task marked <b>successfully</b>!';
+    let errorMessage = 'There was a problem marking the task!';
+    changeValueTask(tags, chatInformation, successMessage, errorMessage);
 }
 
 function unmark_task_function(tags, chatInformation) {
-    var opts = modelForOpts();
-    let now = moment();
-    let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
-    else date = now;
-
-    let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
-    let taskDescriptionTag = tags.find(element => element.getName() == 'task_description');
-    let valueTag = tags.find(element => element.getName() == 'value');
-
-    fas.getTasks(date).then(function(info) {
-        var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
-
-        var class_item = info[class_index];
-        var task_index = class_item.tasks.findIndex(item => item.name == taskDescriptionTag.getValue());
-
-
-        fas.changeValueTask(date, class_index, task_index, valueTag.getValue()).then(function(value) {
-            if (value == -1) bot.sendMessage(chatInformation.chatId, 'There was a problem unmarking the task!', opts['normal']);
-            else bot.sendMessage(chatInformation.chatId, 'Task unmarked <b>successfully</b>!', opts['normal']);
-        });
-    });
+    let successMessage = 'Task unmarked <b>successfully</b>!';
+    let errorMessage = 'There was a problem unmarking the task!';
+    changeValueTask(tags, chatInformation, successMessage, errorMessage);
 }
 
 function schedule_function(tags, chatInformation) {
@@ -226,11 +148,11 @@ class ShowTasksCommand extends CommandInterface { constructor(chatInformation) {
 class ScheduleCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Schedule", schedule_function) } };
 class ScheduleCheckRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Schedule Check Registry", schedule_check_registry_function) } };
 
-function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X']), new Tags.description_registry() ] };
+function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.description_registry() ] };
 class MarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Registry", mark_registry_function, mark_registry_tags()) } };
 function unmark_registry_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.description_registry() ] };
 class UnmarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Registry", unmark_registry_function, unmark_registry_tags()) } };
-function mark_task_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X']), new Tags.class_description(), new Tags.task_description() ] };
+function mark_task_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.class_description(), new Tags.task_description() ] };
 class MarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Tasks", mark_task_function, mark_task_tags()) } };
 function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ] };
 class UnmarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
@@ -251,3 +173,54 @@ const commands = {
 }
 
 module.exports = commands;
+
+function changeValueRegistry(tags, chatInformation, successMessage, errorMessage) {
+    var opts = modelForOpts();
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    else date = now;
+
+    let descriptionTag = tags.find(element => element.getName() == 'description_registry');
+    let valueTag = tags.find(element => element.getName() == 'value');
+
+    fas.getRegistryDay(date).then(function(info) {
+        var indexes = []
+        for (var event_index = 0; event_index < info.length; event_index++)
+            if (info[event_index].description == descriptionTag.getValue())
+                indexes.push(event_index);
+        
+        count = indexes.length;
+        index = indexes[0];
+    
+        fas.changeValueRegistry(date, index, count, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(chatInformation.chatId, errorMessage, opts['normal']);
+            else bot.sendMessage(chatInformation.chatId, successMessage, opts['normal']);
+        });
+    });
+}
+
+function changeValueTask(tags, chatInformation, successMessage, errorMessage) {
+    var opts = modelForOpts();
+
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    else date = now;
+
+    let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
+    let taskDescriptionTag = tags.find(element => element.getName() == 'task_description');
+    let valueTag = tags.find(element => element.getName() == 'value');
+
+    fas.getTasks(date).then(function(info) {
+        var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
+
+        var class_item = info[class_index];
+        var task_index = class_item.tasks.findIndex(item => item.name == taskDescriptionTag.getValue());
+        
+        fas.changeValueTask(date, class_index, task_index, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(chatInformation.chatId, errorMessage, opts['normal']);
+            else bot.sendMessage(chatInformation.chatId, successMessage, opts['normal']);
+        });
+    });
+}

@@ -44,10 +44,6 @@ function class_description_callback(tags, chatInformation) {
     if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
     else date = now;
 
-    let blacklistTag = tags.find(element => element.getName() == 'blacklist');
-    if (blacklistTag != undefined) blacklist = blacklistTag.getValue();
-    else blacklist = [];
-
     fas.getTasks(date).then(function(info) {
         info.map(class_item => {
             opts['keyboard'].reply_markup.keyboard.push([class_item.name]);
