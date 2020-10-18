@@ -64,6 +64,8 @@ bot.onText(/\/unmark_registry(.*)/, function(msg, match) { createCommandAndRun(C
 bot.onText(/\/mark_task(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkTaskCommand, new ChatInformation(msg.chat.id, msg, match)) });
 bot.onText(/\/unmark_task(.*)/, function(msg, match) { createCommandAndRun(Commands.UnmarkTaskCommand, new ChatInformation(msg.chat.id, msg, match)) });
 
+bot.onText(/\phrase_of_the_day(.*)/, function(msg, match) { createCommandAndRun(Commands.AddPhraseOfTheDayCommand, new ChatInformation(msg.chat.id, msg, match)) });
+
 bot.on('message', function(msg) {
 
     if (msg.text[0] == '/') {

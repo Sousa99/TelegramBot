@@ -9,7 +9,8 @@
         {"tag": "show_tasks", "description": "Display tasks" },
         {"tag": "mark_task", "description": "Mark a specific task as completed" },
         {"tag": "unmark_task", "description": "Unmark a specific task" },
-        {"tag": "schedule", "description": "Start a specific schedule" }
+        {"tag": "schedule", "description": "Start a specific schedule" },
+        {"tag": "phrase_of_the_day", "description": "Add a phrase of the day to a temp file" }
     ],
 
     "schedules": [

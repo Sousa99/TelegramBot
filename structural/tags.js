@@ -85,6 +85,12 @@ function task_description_callback(tags, chatInformation) {
     });
 }
 
+function phrase_callback(tags, chatInformation) {
+    var opts = modelForOpts();
+
+    bot.sendMessage(chatInformation.chatId, "What is the phrase?", opts['normal']);
+}
+
 class TotalTag extends TagInterface { constructor() { super("total", undefined, undefined, true) } };
 
 class DateTag extends TagInterface { constructor(value) { super("date", undefined, undefined, value) } };
@@ -93,6 +99,7 @@ class BlacklistTag extends TagInterface { constructor(value) { super("blacklist"
 class DescriptionRegistryTag extends TagInterface { constructor(value) { super("description_registry", description_registry_callback, undefined, value) } };
 class ClassDescriptionTag extends TagInterface { constructor(value) { super("class_description", class_description_callback, undefined, value) } };
 class TaskDescriptionTag extends TagInterface { constructor(value) { super("task_description", task_description_callback, undefined, value) } };
+class PhraseOfTheDayTag extends TagInterface { constructor(value) { super("phrase", phrase_callback, undefined, value) } };
 
 const commands = {
     'date': DateTag,
@@ -102,6 +109,7 @@ const commands = {
     'description_registry': DescriptionRegistryTag,
     'class_description': ClassDescriptionTag,
     'task_description': TaskDescriptionTag,
+    'phrase': PhraseOfTheDayTag,
 }
 
 module.exports = commands;

@@ -1,6 +1,7 @@
 # Private Information
 google_keys.json
 tokens.json
+phrases.txt
 /logs
 
 # Clean Repository

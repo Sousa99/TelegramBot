@@ -1,10 +1,12 @@
 var moment = require('moment');
 var schedule = require('node-schedule');
+var fs = require('fs');
 
 var commandsList = require('../json/commands.json');
 var fas = require('../modules/fas.js');
 var date_module = require('../modules/date.js');
 var schedules = require('../modules/schedules.js');
+var logger = require('../modules/logger.js');
 
 let classes = require('./classes.js');
 let CommandInterface = classes.CommandInterface;
@@ -126,6 +128,31 @@ function schedule_function(tags, chatInformation) {
     bot.sendMessage(chatInformation.chatId, message, opts['normal']);
 }
 
+function add_phrase_of_the_day_function(tags, chatInformation) {
+    var opts = modelForOpts();
+
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    else date = now;
+    
+    let dateString = date.format('YYYY - MM - DD');
+    let momentString = now.format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+    let phraseTag = tags.find(element => element.getName() == 'phrase');
+    let phrase = phraseTag.getValue();
+
+    let string = '{ \"day\": \"' + dateString + '\", \"time\": \"' + momentString + '\", \"phrase\": \"' + phrase + '\"},\n';
+
+    fs.appendFile('./output/phrases.txt', string, function (err) {
+        if (err) logger.log.error(err);
+        else {
+            logger.log.info('Saved phrase of the day');
+            bot.sendMessage(chatInformation.chatId, "Phrase of the day saved!", opts['normal']);
+        }
+    });
+
+}
+
 global.schedule_check_registry_chatIds = [];
 function schedule_check_registry_function(tags, chatInformation) {
     var opts = modelForOpts();
@@ -157,6 +184,9 @@ class MarkTaskCommand extends CommandInterface { constructor(chatInformation) { 
 function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ] };
 class UnmarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
 
+function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
+class AddPhraseOfTheDayCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Adding Phrase Of The Day", add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
+
 const commands = {
     StartCommand: StartCommand,
     FasSetupCommand: FasSetupCommand,
@@ -170,6 +200,8 @@ const commands = {
     UnmarkRegistryCommand: UnmarkRegistryCommand,
     MarkTaskCommand: MarkTaskCommand,
     UnmarkTaskCommand: UnmarkTaskCommand,
+
+    AddPhraseOfTheDayCommand: AddPhraseOfTheDayCommand,
 }
 
 module.exports = commands;
