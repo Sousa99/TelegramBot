@@ -108,6 +108,12 @@ function unmark_registry_function(tags, chatInformation) {
     changeValueRegistry(tags, chatInformation, successMessage, errorMessage);
 }
 
+function change_registry_function(tags, chatInformation) {
+    let successMessage = 'Registry changed <b>successfully</b>!';
+    let errorMessage = 'There was a problem changing the registry!';
+    changeValueRegistry(tags, chatInformation, successMessage, errorMessage);
+}
+
 function mark_task_function(tags, chatInformation) {
     let successMessage = 'Task marked <b>successfully</b>!';
     let errorMessage = 'There was a problem marking the task!';
@@ -117,6 +123,12 @@ function mark_task_function(tags, chatInformation) {
 function unmark_task_function(tags, chatInformation) {
     let successMessage = 'Task unmarked <b>successfully</b>!';
     let errorMessage = 'There was a problem unmarking the task!';
+    changeValueTask(tags, chatInformation, successMessage, errorMessage);
+}
+
+function change_task_function(tags, chatInformation) {
+    let successMessage = 'Task changed <b>successfully</b>!';
+    let errorMessage = 'There was a problem changing the task!';
     changeValueTask(tags, chatInformation, successMessage, errorMessage);
 }
 
@@ -179,10 +191,14 @@ function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist
 class MarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Registry", mark_registry_function, mark_registry_tags()) } };
 function unmark_registry_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.description_registry() ] };
 class UnmarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Registry", unmark_registry_function, unmark_registry_tags()) } };
+function change_registry_tags() { return [ new Tags.description_registry(), new Tags.value() ] };
+class ChangeRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Changing Registry", change_registry_function, change_registry_tags()) } };
 function mark_task_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.class_description(), new Tags.task_description() ] };
 class MarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Tasks", mark_task_function, mark_task_tags()) } };
 function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ] };
 class UnmarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
+function change_task_tags() { return [ new Tags.class_description(), new Tags.task_description(), new Tags.value() ] };
+class ChangeTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Changing Tasks", change_task_function, change_task_tags()) } };
 
 function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
 class AddPhraseOfTheDayCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Adding Phrase Of The Day", add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
@@ -198,8 +214,10 @@ const commands = {
 
     MarkRegistryCommand: MarkRegistryCommand,
     UnmarkRegistryCommand: UnmarkRegistryCommand,
+    ChangeRegistryCommand: ChangeRegistryCommand,
     MarkTaskCommand: MarkTaskCommand,
     UnmarkTaskCommand: UnmarkTaskCommand,
+    ChangeTaskCommand: ChangeTaskCommand,
 
     AddPhraseOfTheDayCommand: AddPhraseOfTheDayCommand,
 }

@@ -6,9 +6,11 @@
         {"tag": "show_registry", "description": "Display registry for events" },
         {"tag": "mark_registry", "description": "Mark a specific event as done" },
         {"tag": "unmark_registry", "description": "Unmark a specific event" },
+        {"tag": "change_registry", "description": "Change a specific event" },
         {"tag": "show_tasks", "description": "Display tasks" },
         {"tag": "mark_task", "description": "Mark a specific task as completed" },
         {"tag": "unmark_task", "description": "Unmark a specific task" },
+        {"tag": "change_task", "description": "Change a specific task" },
         {"tag": "schedule", "description": "Start a specific schedule" },
         {"tag": "phrase_of_the_day", "description": "Add a phrase of the day to a temp file" }
     ],

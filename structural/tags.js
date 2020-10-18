@@ -91,10 +91,16 @@ function phrase_callback(tags, chatInformation) {
     bot.sendMessage(chatInformation.chatId, "What is the phrase?", opts['normal']);
 }
 
+function value_callback(tags, chatInformation) {
+    var opts = modelForOpts();
+
+    bot.sendMessage(chatInformation.chatId, "What value do you wish to place in the event?", opts['normal']);
+}
+
 class TotalTag extends TagInterface { constructor() { super("total", undefined, undefined, true) } };
 
 class DateTag extends TagInterface { constructor(value) { super("date", undefined, undefined, value) } };
-class ValueTag extends TagInterface { constructor(value) { super("value", undefined, undefined, value) } };
+class ValueTag extends TagInterface { constructor(value) { super("value", value_callback, undefined, value) } };
 class BlacklistTag extends TagInterface { constructor(value) { super("blacklist", undefined, undefined, value)}}
 class DescriptionRegistryTag extends TagInterface { constructor(value) { super("description_registry", description_registry_callback, undefined, value) } };
 class ClassDescriptionTag extends TagInterface { constructor(value) { super("class_description", class_description_callback, undefined, value) } };
