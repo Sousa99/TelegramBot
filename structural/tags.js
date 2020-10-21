@@ -97,6 +97,11 @@ function value_callback(tags, chatInformation) {
     bot.sendMessage(chatInformation.chatId, "What value do you wish to place in the event?", opts['normal']);
 }
 
+function new_task_name_callback(tags, chatInformation) {
+    var opts = modelForOpts();
+    bot.sendMessage(chatInformation.chatId, "How do you wish to name the task?", opts['normal']);
+}
+
 class TotalTag extends TagInterface { constructor() { super("total", undefined, undefined, true) } };
 
 class DateTag extends TagInterface { constructor(value) { super("date", undefined, undefined, value) } };
@@ -105,6 +110,7 @@ class BlacklistTag extends TagInterface { constructor(value) { super("blacklist"
 class DescriptionRegistryTag extends TagInterface { constructor(value) { super("description_registry", description_registry_callback, undefined, value) } };
 class ClassDescriptionTag extends TagInterface { constructor(value) { super("class_description", class_description_callback, undefined, value) } };
 class TaskDescriptionTag extends TagInterface { constructor(value) { super("task_description", task_description_callback, undefined, value) } };
+class NewTaskNameCallback extends TagInterface { constructor(value) { super("new_task_name", new_task_name_callback, undefined, value) } };
 class PhraseOfTheDayTag extends TagInterface { constructor(value) { super("phrase", phrase_callback, undefined, value) } };
 
 const commands = {
@@ -115,6 +121,7 @@ const commands = {
     'description_registry': DescriptionRegistryTag,
     'class_description': ClassDescriptionTag,
     'task_description': TaskDescriptionTag,
+    'new_task_name': NewTaskNameCallback,
     'phrase': PhraseOfTheDayTag,
 }
 

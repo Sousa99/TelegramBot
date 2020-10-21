@@ -95,7 +95,7 @@ async function gsGet(range) {
     return data;
 }
 
-async function gsPost(range, values) {
+async function gsPostUpdate(range, values) {
     const gsapi = google.sheets({version: 'v4', auth: client});
 
     const opt = {
@@ -109,6 +109,20 @@ async function gsPost(range, values) {
     return res;
 }
 
+async function gsPostAppend(range, values) {
+    const gsapi = google.sheets({version: 'v4', auth: client});
+
+    const opt = {
+        spreadsheetId: FAS_ID,
+        range: range,
+        valueInputOption: 'USER_ENTERED',
+        resource: { values: values}
+    };
+
+    let res = await gsapi.spreadsheets.values.append(opt);
+    return res;
+}
+
 async function changeValueRegistry(date, index, count, value) {
     var delta_days = date_module.getDelta(date, base_date);
     
@@ -119,7 +133,7 @@ async function changeValueRegistry(date, index, count, value) {
     var values = [];
     for (var x = 0; x < count; x++) values.push(value);
 
-    res = await gsPost(range, [values]);
+    res = await gsPostUpdate(range, [values]);
     if (res.statusText != 'OK') return -1;
     
     return 1;
@@ -132,7 +146,21 @@ async function changeValueTask(date, class_index, task_index, value) {
     var letter = String.fromCharCode('C'.charCodeAt(0) + 2 * class_index);
     
     var range = 'TAREFAS!' + letter + row.toString();
-    res = await gsPost(range, [[value]]);
+    res = await gsPostUpdate(range, [[value]]);
+    if (res.statusText != 'OK') return -1;
+    
+    return 1;
+}
+
+async function addTask(date, class_index, task_index, task, state) {
+    var delta_weeks = date_module.getDelta(date, base_date, 'weeks');
+    
+    var row = delta_weeks * 12 + 5 + task_index;
+    var letter1 = String.fromCharCode('B'.charCodeAt(0) + 2 * class_index);
+    var letter2 = String.fromCharCode('C'.charCodeAt(0) + 2 * class_index);
+    
+    var range = 'TAREFAS!' + letter1 + row.toString() + ':' + letter2 + row.toString();
+    res = await gsPostUpdate(range, [[task, state]]);
     if (res.statusText != 'OK') return -1;
     
     return 1;
@@ -228,5 +256,6 @@ exports.getRegistryDay = getRegistryDay;
 exports.getTasks = getTasks;
 exports.changeValueRegistry = changeValueRegistry;
 exports.changeValueTask = changeValueTask;
+exports.addTask = addTask;
 exports.checkMarking = checkMarking;
 exports.printSchedule =printSchedule;

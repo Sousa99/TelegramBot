@@ -132,6 +132,37 @@ function change_task_function(tags, chatInformation) {
     changeValueTask(tags, chatInformation, successMessage, errorMessage);
 }
 
+function add_task_function(tags, chatInformation) {
+    var opts = modelForOpts();
+
+    let now = moment();
+    let dateTag = tags.find(element => element.getName() == 'date');
+    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    else date = now;
+
+    let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
+    let taskNameTag = tags.find(element => element.getName() == 'new_task_name');
+    let valueTag = tags.find(element => element.getName() == 'value');
+
+    fas.getTasks(date).then(function(info) {
+        var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
+        var class_item = info[class_index];
+
+        var task_index = class_item.tasks.findIndex(item => ["", undefined, null].includes(item.name));
+        if (task_index == -1)
+            task_index = class_item.tasks.length
+
+        if (task_index >= 11) {
+            bot.sendMessage(chatInformation.chatId, 'There is no space for more tasks in that class!', opts['normal']);
+        } else {
+            fas.addTask(date, class_index, task_index, taskNameTag.getValue(), valueTag.getValue()).then(function(value) {
+                if (value == -1) bot.sendMessage(chatInformation.chatId, 'There was a problem adding the task!', opts['normal']);
+                else bot.sendMessage(chatInformation.chatId, 'Task added <b>successfully</b>!', opts['normal']);
+            });
+        }
+    });
+}
+
 function schedule_function(tags, chatInformation) {
     var opts = modelForOpts();
     var message = 'This are all the available schedules:\n'
@@ -199,6 +230,8 @@ function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['
 class UnmarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
 function change_task_tags() { return [ new Tags.class_description(), new Tags.task_description(), new Tags.value() ] };
 class ChangeTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Changing Tasks", change_task_function, change_task_tags()) } };
+function new_task_tags() { return [ new Tags.class_description(), new Tags.new_task_name(), new Tags.value() ] };
+class AddTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Adding Task", add_task_function, new_task_tags()) } };
 
 function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
 class AddPhraseOfTheDayCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Adding Phrase Of The Day", add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
@@ -218,6 +251,7 @@ const commands = {
     MarkTaskCommand: MarkTaskCommand,
     UnmarkTaskCommand: UnmarkTaskCommand,
     ChangeTaskCommand: ChangeTaskCommand,
+    AddTaskCommand: AddTaskCommand,
 
     AddPhraseOfTheDayCommand: AddPhraseOfTheDayCommand,
 }
