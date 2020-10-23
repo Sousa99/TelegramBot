@@ -29,7 +29,7 @@ global.modelForOpts = function() {
 logger.log.warn("Initializing Bot");
 var commandByChatId = {}
 
-function createCommandAndRun(CommandReference, chatInformation) {
+function createCommandAndRun(CommandReference, chatInformation, predefinedTags) {
     let command = new CommandReference(chatInformation);
     let match = chatInformation.match;
 
@@ -47,9 +47,13 @@ function createCommandAndRun(CommandReference, chatInformation) {
         command.setTag(tag);
     }
 
+    for (tagIndex in predefinedTags)
+        command.setTag(predefinedTags[tagIndex]);
+
     if (command.run())
         commandByChatId[chatInformation.chatId] = undefined;
 }
+global.createCommandAndRun = createCommandAndRun;
 
 bot.onText(/\/start(.*)/, function(msg, match) { createCommandAndRun(Commands.StartCommand, new ChatInformation(msg.chat.id, msg, match)) });
 bot.onText(/\/fas_setup/, function(msg, match) { createCommandAndRun(Commands.FasSetupCommand, new ChatInformation(msg.chat.id, msg, match)) });

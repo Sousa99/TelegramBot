@@ -5,12 +5,12 @@ var fs = require('fs');
 var commandsList = require('../json/commands.json');
 var fas = require('../modules/fas.js');
 var date_module = require('../modules/date.js');
-var schedules = require('../modules/schedules.js');
 var logger = require('../modules/logger.js');
 
 let classes = require('./classes.js');
 let CommandInterface = classes.CommandInterface;
 
+const ChatInformation = classes.ChatInformation;
 const Tags = require('./tags.js');
 
 function start_function(tags, chatInformation) {
@@ -202,12 +202,32 @@ function schedule_check_registry_function(tags, chatInformation) {
     
     if (!schedule_check_registry_chatIds.includes(chatInformation.chatId)) {
         schedule_check_registry_chatIds.push(chatInformation.chatId);
-        schedule.scheduleJob('0 20 * * * *', schedules.autoRegistry);
-        schedule.scheduleJob('0 50 * * * *', schedules.autoRegistry);
         bot.sendMessage(chatInformation.chatId, "Schedule check_registry activated", opts['normal']);
     } else {
         bot.sendMessage(chatInformation.chatId, "Schedule check_registry already activated", opts['normal']);
     }
+}
+
+// --------------- STARTING SCHEDULES ---------------
+schedule.scheduleJob('0 20 * * * *', autoRegistry);
+schedule.scheduleJob('0 50 * * * *', autoRegistry);
+
+// --------------- SCHEDULE FUNCTIONS ---------------
+function autoRegistry() {
+    var opts = modelForOpts();
+    fas.checkMarking().then(function(event) {
+        if (event == null) return;
+
+        var message = 'Do you wish to mark ' + event['class'] + ' class?\n';
+        message += 'Room: ' + event['room'];
+
+        for (index in schedule_check_registry_chatIds)
+            bot.sendMessage(schedule_check_registry_chatIds[index], message, opts['keyboard']);
+
+            let chatInformation = new ChatInformation(schedule_check_registry_chatIds[index], undefined, undefined);
+            let predefinedTags = [ new Tags.description_registry(event['class']) ];
+            global.createCommandAndRun(ChangeRegistryCommand, chatInformation, predefinedTags);
+    });
 }
 
 class StartCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Start", start_function) } };
