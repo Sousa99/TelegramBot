@@ -5,7 +5,12 @@ schedule_check_registry = false;
 
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./json/tokens.json');
-global.bot = new TelegramBot(tokens.telegram, { polling: true });
+
+let telegramToken = tokens['telegram'];
+const isDebugEnvFlag = process.env.NODE_ENV === 'debug';
+if (isDebugEnvFlag) telegramToken = tokens['telegram-debug'];
+
+global.bot = new TelegramBot(telegramToken, { polling: true });
 
 const ChatInformation = require('./structural/classes.js').ChatInformation;
 const Commands = require('./structural/commands.js');
