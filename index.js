@@ -1,8 +1,6 @@
 process.env.NTBA_FIX_319 = 1; // To disable telegram bot api deprecating warning
 var logger = require('./modules/logger.js');
 
-schedule_check_registry = false;
-
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./json/tokens.json');
 
@@ -10,12 +8,17 @@ let telegramToken = tokens['telegram'];
 const isDebugEnvFlag = process.env.NODE_ENV === 'debug';
 if (isDebugEnvFlag) telegramToken = tokens['telegram-debug'];
 
-global.bot = new TelegramBot(telegramToken, { polling: true });
+const BotInformation = require('./structural/user.js').BotInformation;
+const User = require('./structural/user.js').User;
+const ChatInformation = require('./structural/user.js').ChatInformation;
 
-const ChatInformation = require('./structural/classes.js').ChatInformation;
 const Commands = require('./structural/commands.js');
 const Tags = require('./structural/tags.js');
+const { chat } = require('googleapis/build/src/apis/chat');
 
+availableSchedules = ['check-registry']
+global.botInformation = new BotInformation(availableSchedules);
+global.bot = new TelegramBot(telegramToken, { polling: true });
 global.modelForOpts = function() {
     return {
         'normal': {parse_mode: 'HTML' },
@@ -32,13 +35,20 @@ global.modelForOpts = function() {
 }
 
 logger.log.warn("Initializing Bot");
-var commandByChatId = {}
 
 function createCommandAndRun(CommandReference, chatInformation, predefinedTags) {
-    let command = new CommandReference(chatInformation);
+    let user = botInformation.getUser(chatInformation.chatId);
+    if (user == undefined) botInformation.addUser(new User(
+            chatInformation.chatId,
+            chatInformation.msg.from.first_name,
+            chatInformation.msg.from.last_name
+        ));
+
+    user.setChatInformation(chatInformation);
+    let command = new CommandReference(user);
     let match = chatInformation.match;
 
-    commandByChatId[chatInformation.chatId] = command;
+    botInformation.setCommandToChatId(user.getChatId(), command);
 
     let inputTags = [];
     if (match != undefined && match[1] != undefined)
@@ -52,11 +62,8 @@ function createCommandAndRun(CommandReference, chatInformation, predefinedTags) 
         command.setTag(tag);
     }
 
-    for (tagIndex in predefinedTags)
-        command.setTag(predefinedTags[tagIndex]);
-
-    if (command.run())
-        commandByChatId[chatInformation.chatId] = undefined;
+    for (tagIndex in predefinedTags) command.setTag(predefinedTags[tagIndex]);
+    if (command.run()) botInformation.setCommandToChatId(user.getChatId(), undefined);
 }
 global.createCommandAndRun = createCommandAndRun;
 
@@ -79,17 +86,22 @@ bot.onText(/\/add_task(.*)/, function(msg, match) { createCommandAndRun(Commands
 bot.onText(/\phrase_of_the_day(.*)/, function(msg, match) { createCommandAndRun(Commands.AddPhraseOfTheDayCommand, new ChatInformation(msg.chat.id, msg, match)) });
 
 bot.on('message', function(msg) {
+    let user = botInformation.getUser(chatInformation.chatId);
+    if (user == undefined) botInformation.addUser(new User(
+            chatInformation.chatId,
+            chatInformation.msg.from.first_name,
+            chatInformation.msg.from.last_name
+        ));
 
     if (msg.text[0] == '/') {
-        commandByChatId[msg.chat.id] = undefined;
-    } else if (commandByChatId[msg.chat.id] != undefined) {
-        let command = commandByChatId[msg.chat.id];
+        botInformation.setCommandToChatId(user.getChatId(), undefined);
+    } else if ((command = botInformation.getCommandByChatId(user.getChatId())) != undefined) {
         let activeTag = command.getActiveTag();
         
         activeTag.setValue(msg.text);
         activeTag.verify(command.getTags(), new ChatInformation(msg.chat.id, msg, undefined)).then(function() {
             if (command.run())
-                commandByChatId[msg.chat.id] = undefined;
+                botInformation.setCommandToChatId(user.getChatId(), undefined);
         })
     }
 })
