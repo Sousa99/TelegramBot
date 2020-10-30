@@ -36,7 +36,7 @@ class User {
 }
 
 class BotInformation {
-    constructor(schedulesList) {
+    constructor(schedulesList = []) {
         this.users = [];
         this.commands = {};
         this.schedules = {};
@@ -49,13 +49,17 @@ class BotInformation {
         else { this.users.push(user); return 0; }
     }
 
-    setCommandToChatId(chatId, command) { this.schedules[chatId] = command; }
-    getCommandByChatId(chatId) { return this.schedules[chatId]; }
+    setCommandToChatId(chatId, command) { this.commands[chatId] = command; }
+    getCommandByChatId(chatId) { return this.commands[chatId]; }
 
     getUsersWithSchedule(scheduleName) { return this.schedules[scheduleName]; }
     addUserToSchedule(scheduleName, user) {
-        if (this.schedules[scheduleName].includes(user)) { return 0; }
-        else { this.schedules[scheduleName].push(user); return 1; }
+        if (this.schedules[scheduleName].includes(user.getChatId())) { return 0; }
+        else { this.schedules[scheduleName].push(user.getChatId()); return 1; }
+    }
+
+    cleanUsers() {
+        this.users.forEach(x => x.setChatInformation(undefined));
     }
 }
 

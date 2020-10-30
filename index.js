@@ -1,5 +1,7 @@
 process.env.NTBA_FIX_319 = 1; // To disable telegram bot api deprecating warning
 var logger = require('./modules/logger.js');
+var schedule = require('node-schedule');
+var fs = require('fs');
 
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./json/tokens.json');
@@ -16,8 +18,10 @@ const Commands = require('./structural/commands.js');
 const Tags = require('./structural/tags.js');
 const { chat } = require('googleapis/build/src/apis/chat');
 
-availableSchedules = ['check-registry']
-global.botInformation = new BotInformation(availableSchedules);
+logger.log.warn("Initializing Bot");
+if (isDebugEnvFlag) logger.log.info("In Debug Mode");
+
+global.botInformation = getBotState();
 global.bot = new TelegramBot(telegramToken, { polling: true });
 global.modelForOpts = function() {
     return {
@@ -34,16 +38,16 @@ global.modelForOpts = function() {
     }
 }
 
-logger.log.warn("Initializing Bot");
-
 function createCommandAndRun(CommandReference, chatInformation, predefinedTags) {
     let user = botInformation.getUser(chatInformation.chatId);
-    if (user == undefined) botInformation.addUser(new User(
+    if (user == undefined) {
+        botInformation.addUser(new User(
             chatInformation.chatId,
             chatInformation.msg.from.first_name,
             chatInformation.msg.from.last_name
         ));
-
+        user = botInformation.getUser(chatInformation.chatId);
+    }
     user.setChatInformation(chatInformation);
     let command = new CommandReference(user);
     let match = chatInformation.match;
@@ -86,12 +90,16 @@ bot.onText(/\/add_task(.*)/, function(msg, match) { createCommandAndRun(Commands
 bot.onText(/\phrase_of_the_day(.*)/, function(msg, match) { createCommandAndRun(Commands.AddPhraseOfTheDayCommand, new ChatInformation(msg.chat.id, msg, match)) });
 
 bot.on('message', function(msg) {
+    let chatInformation = new ChatInformation(msg.chat.id, msg, undefined);
     let user = botInformation.getUser(chatInformation.chatId);
-    if (user == undefined) botInformation.addUser(new User(
+    if (user == undefined) {
+        botInformation.addUser(new User(
             chatInformation.chatId,
             chatInformation.msg.from.first_name,
             chatInformation.msg.from.last_name
         ));
+        user = botInformation.getUser(chatInformation.chatId);
+    }
 
     if (msg.text[0] == '/') {
         botInformation.setCommandToChatId(user.getChatId(), undefined);
@@ -135,4 +143,31 @@ function analyseInput(string) {
     }
 
     return items;
+}
+
+schedule.scheduleJob('0 * * * * *', saveBotState);
+function saveBotState() {
+    let copy = Object.assign(Object.create(Object.getPrototypeOf(botInformation)), botInformation);
+    copy.cleanUsers();
+
+    fs.writeFile('./output/state.json', JSON.stringify(copy), function (err) {
+        if (err) logger.log.error(err);
+        else logger.log.info('Saved bot state');
+    });
+}
+
+function getBotState() {
+    if (fs.existsSync('./output/state.json')) {
+        logger.log.info("Bot State File was found");
+        let rawdata = fs.readFileSync('./output/state.json');
+        let info = JSON.parse(rawdata);
+
+        botInformation = Object.assign(new BotInformation, info);
+        logger.log.info("Bot State File was loaded");
+        return botInformation;
+    } else {
+        logger.log.info("Bot State File wasn't found");
+        availableSchedules = ['check-registry'];
+        return new BotInformation(availableSchedules);
+    }
 }

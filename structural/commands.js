@@ -198,10 +198,11 @@ function add_phrase_of_the_day_function(tags, user) {
 function schedule_check_registry_function(tags, user) {
     var opts = modelForOpts();
     
-    if (botInformation.addUserToSchedule('check_registry')) {
-        bot.sendMessage(user.getChatId(), "Schedule check_registry activated", opts['normal']);
+    if (botInformation.addUserToSchedule('check-registry', user)) {
+        user.addSchedule('check-registry');
+        bot.sendMessage(user.getChatId(), "Schedule check-registry activated", opts['normal']);
     } else {
-        bot.sendMessage(user.getChatId(), "Schedule check_registry already activated", opts['normal']);
+        bot.sendMessage(user.getChatId(), "Schedule check-registry already activated", opts['normal']);
     }
 }
 
@@ -212,7 +213,8 @@ schedule.scheduleJob('0 50 * * * *', autoRegistry);
 // --------------- SCHEDULE FUNCTIONS ---------------
 function autoRegistry() {
     usersWithSchedule = botInformation.getUsersWithSchedule('check-registry');
-    usersWithSchedule.forEach(user => {
+    usersWithSchedule.forEach(chatId => {
+        botInformation.getUser(chatId);
         fas.checkMarking().then(function(event) {
             var opts = modelForOpts();
             if (event == null) return;
@@ -223,7 +225,7 @@ function autoRegistry() {
             let predefinedTags = [ new Tags.description_registry(event['class']) ];
 
             bot.sendMessage(user.getChatId(), message, opts['keyboard']);
-            global.createCommandAndRun(ChangeRegistryCommand, user, predefinedTags);
+            global.createCommandAndRun(ChangeRegistryCommand, user.getChatInformation(), predefinedTags);
         });
     });
 }
