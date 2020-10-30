@@ -163,6 +163,8 @@ function getBotState() {
         let info = JSON.parse(rawdata);
 
         botInformation = Object.assign(new BotInformation, info);
+        botInformation.parseObjects();
+
         logger.log.info("Bot State File was loaded");
         return botInformation;
     } else {

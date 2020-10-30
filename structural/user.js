@@ -8,6 +8,8 @@ class ChatInformation {
     getChatId() { return this.chatId; }
     getMsg() { return this.msg; }
     getMatch() { return this.match; }
+
+    parseObjects() {}
 }
 
 class User {
@@ -33,6 +35,11 @@ class User {
     addSchedule(newSchedule) { this.schedules.push(newSchedule); }
     setFasFile(fasFile) { this.fasFile = fasFile; }
     setChatInformation(chatInformation) { this.lastChatInformation = chatInformation; }
+
+    parseObjects() {
+        this.chatInformation = Object.assign(new ChatInformation, this.chatInformation);
+        this.chatInformation.parseObjects();
+    }
 }
 
 class BotInformation {
@@ -58,8 +65,10 @@ class BotInformation {
         else { this.schedules[scheduleName].push(user.getChatId()); return 1; }
     }
 
-    cleanUsers() {
-        this.users.forEach(x => x.setChatInformation(undefined));
+    cleanUsers() { this.users.forEach(x => x.setChatInformation(undefined)); }
+    parseObjects() {
+        this.users = this.users.map(x => Object.assign(new User, x));
+        this.users.forEach(x => x.parseObjects());
     }
 }
 
