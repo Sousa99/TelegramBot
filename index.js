@@ -87,7 +87,8 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) { createCommandAndRun(Comma
 bot.onText(/\/change_task(.*)/, function(msg, match) { createCommandAndRun(Commands.ChangeTaskCommand, new ChatInformation(msg.chat.id, msg, match)) });
 bot.onText(/\/add_task(.*)/, function(msg, match) { createCommandAndRun(Commands.AddTaskCommand, new ChatInformation(msg.chat.id, msg, match)) });
 
-bot.onText(/\phrase_of_the_day(.*)/, function(msg, match) { createCommandAndRun(Commands.AddPhraseOfTheDayCommand, new ChatInformation(msg.chat.id, msg, match)) });
+bot.onText(/\/phrase_of_the_day(.*)/, function(msg, match) { createCommandAndRun(Commands.AddPhraseOfTheDayCommand, new ChatInformation(msg.chat.id, msg, match)) });
+bot.onText(/\/set_fas/, function(msg, match) { createCommandAndRun(Commands.SetFasCommand, new ChatInformation(msg.chat.id, msg, match)) });
 
 bot.on('message', function(msg) {
     let chatInformation = new ChatInformation(msg.chat.id, msg, undefined);

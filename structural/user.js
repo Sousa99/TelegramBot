@@ -20,6 +20,7 @@ class User {
         this.schedules = [];
 
         this.fasFile = undefined;
+        this.fasSchedule = undefined;
         this.lastChatInformation = undefined;
     }
 
@@ -28,12 +29,14 @@ class User {
     getChatId() { return this.chatId; }
     getFirstName() { return this.firstName; }
     getLastName() { return this.lastName; }
+    getFasSchedule() { return this.fasSchedule; }
     getSchedules() { return this.schedules; }
     getFasFile() { return this.fasFile; }
     getChatInformation() { return this.lastChatInformation; }
 
     addSchedule(newSchedule) { this.schedules.push(newSchedule); }
     setFasFile(fasFile) { this.fasFile = fasFile; }
+    setFasSchedule(schedule) { this.fasSchedule = schedule; }
     setChatInformation(chatInformation) { this.lastChatInformation = chatInformation; }
 
     parseObjects() {

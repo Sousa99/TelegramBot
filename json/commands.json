@@ -13,7 +13,8 @@
         {"tag": "change_task", "description": "Change a specific task" },
         {"tag": "add_task", "description": "Add a task to a specific class" },
         {"tag": "schedule", "description": "Start a specific schedule" },
-        {"tag": "phrase_of_the_day", "description": "Add a phrase of the day to a temp file" }
+        {"tag": "phrase_of_the_day", "description": "Add a phrase of the day to a temp file" },
+        {"tag": "set_fas", "description": "Set fas file of user" }
     ],
 
     "schedules": [

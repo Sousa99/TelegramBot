@@ -25,16 +25,21 @@ function start_function(tags, user) {
 
 async function fas_setup_function(tags, user) {
     var opts = modelForOpts();
-    await fas.setupConst();
-    bot.sendMessage(user.getChatId(), "Clean Setup Done", opts['normal']);
+    fas.setupConst(user.getFasFile()).then(function(schedule) {
+        user.setFasSchedule(schedule);
+        bot.sendMessage(user.getChatId(), "Clean Setup Done", opts['normal']);
+    });
 }
 
 function fas_print_function(tags, user) {
     var opts = modelForOpts();
-    var message = "<b>Schedule Check-Registry:</b> " + botInformation.getUsersWithSchedule('check-registry').includes(user.getChatId());
+
+    var message = "<b>Schedule Check-Registry:</b> " + user.getSchedules().includes('check-registry');
+    bot.sendMessage(user.getChatId(), message, opts['normal']);
+    var message = "<b>Fas File:</b> " + user.getFasFile();
     bot.sendMessage(user.getChatId(), message, opts['normal']);
     
-    var messages = fas.printSchedule();
+    var messages = fas.printSchedule(user.getFasSchedule());
     for (message in messages)
         bot.sendMessage(user.getChatId(), messages[message], opts['normal']);
 }
@@ -48,7 +53,7 @@ function show_registry_function(tags, user) {
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
 
-    fas.getRegistryDay(date).then(function(info) {
+    fas.getRegistryDay(user.getFasFile(), date).then(function(info) {
         if (info.length == 0) {
             bot.sendMessage(user.getChatId(), 'There was nothing to register that day!');
             return;
@@ -76,7 +81,7 @@ function show_tasks_function(tags, user) {
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), date).then(function(info) {
         for (var class_index = 0; class_index < info.length; class_index++) {
             var perfect = true;
             current_class = info[class_index];
@@ -143,7 +148,7 @@ function add_task_function(tags, user) {
     let taskNameTag = tags.find(element => element.getName() == 'new_task_name');
     let valueTag = tags.find(element => element.getName() == 'value');
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), date).then(function(info) {
         var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
         var class_item = info[class_index];
 
@@ -154,7 +159,7 @@ function add_task_function(tags, user) {
         if (task_index >= 11) {
             bot.sendMessage(user.getChatId(), 'There is no space for more tasks in that class!', opts['normal']);
         } else {
-            fas.addTask(date, class_index, task_index, taskNameTag.getValue(), valueTag.getValue()).then(function(value) {
+            fas.addTask(user.getFasFile(), date, class_index, task_index, taskNameTag.getValue(), valueTag.getValue()).then(function(value) {
                 if (value == -1) bot.sendMessage(user.getChatId(), 'There was a problem adding the task!', opts['normal']);
                 else bot.sendMessage(user.getChatId(), 'Task added <b>successfully</b>!', opts['normal']);
             });
@@ -206,6 +211,17 @@ function schedule_check_registry_function(tags, user) {
     }
 }
 
+function set_fas(tags, user) {
+    var opts = modelForOpts();
+
+    let valueTag = tags.find(element => element.getName() == 'value');
+    user.setFasFile(valueTag.getValue());
+    fas.setupConst(user.getFasFile()).then(function(schedule) {
+        user.setFasSchedule(schedule);
+        bot.sendMessage(user.getChatId(), "Fas file set successfully", opts['normal']);
+    });
+}
+
 // --------------- STARTING SCHEDULES ---------------
 schedule.scheduleJob('0 20 * * * *', autoRegistry);
 schedule.scheduleJob('0 50 * * * *', autoRegistry);
@@ -214,8 +230,8 @@ schedule.scheduleJob('0 50 * * * *', autoRegistry);
 function autoRegistry() {
     usersWithSchedule = botInformation.getUsersWithSchedule('check-registry');
     usersWithSchedule.forEach(chatId => {
-        botInformation.getUser(chatId);
-        fas.checkMarking().then(function(event) {
+        let user = botInformation.getUser(chatId);
+        fas.checkMarking(user.getFasSchedule()).then(function(event) {
             var opts = modelForOpts();
             if (event == null) return;
 
@@ -255,6 +271,8 @@ class AddTaskCommand extends CommandInterface { constructor(user) { super(user, 
 
 function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
 class AddPhraseOfTheDayCommand extends CommandInterface { constructor(user) { super(user, "Adding Phrase Of The Day", add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
+function set_fas_tags() { return [ new Tags.value() ] };
+class SetFasCommand extends CommandInterface { constructor(user) { super(user, "Set Fas File", set_fas, set_fas_tags()) } };
 
 const commands = {
     StartCommand: StartCommand,
@@ -274,6 +292,7 @@ const commands = {
     AddTaskCommand: AddTaskCommand,
 
     AddPhraseOfTheDayCommand: AddPhraseOfTheDayCommand,
+    SetFasCommand: SetFasCommand
 }
 
 module.exports = commands;
