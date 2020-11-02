@@ -146,7 +146,7 @@ function analyseInput(string) {
     return items;
 }
 
-schedule.scheduleJob('0 * * * * *', saveBotState);
+schedule.scheduleJob('0 0 * * * *', saveBotState);
 function saveBotState() {
     let copy = Object.assign(Object.create(Object.getPrototypeOf(botInformation)), botInformation);
     copy.cleanUsers();

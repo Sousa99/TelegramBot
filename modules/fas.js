@@ -21,9 +21,6 @@ client.authorize(function(err, tokens) {
     }
 });
 
-var base_date;
-var classes = [];
-
 var weekDaysPortuguese = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
 var weekDaysEnglish = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -60,19 +57,20 @@ async function setupConst(fas_id) {
                         let line_classes = data_class[line_index];
                         let line_rooms = data_room[line_index];
                         let time = line_classes[0];
-                        let classes = line_classes.splice(1);
+                        let classes_temp = line_classes.splice(1);
                         let rooms = line_rooms.splice(1);
     
                         for (var key in schedule) schedule[key][time] = null;
-                        for (var index in classes) {
-                            let event = { 'class': classes[index], 'room': rooms[index] };
+                        for (var index in classes_temp) {
+                            let event = { 'class': classes_temp[index], 'room': rooms[index] };
     
-                            if (classes[index] != '')
+                            if (classes_temp[index] != '')
                                 schedule[weekDays[index]][time] = event;
                         }
                     }
                     
-                    resolve(schedule);
+                    info = [base_date, classes, schedule]
+                    resolve(info);
                 });
             }); 
         });
@@ -121,7 +119,7 @@ async function gsPostAppend(fas_id, range, values) {
     return res;
 }
 
-async function changeValueRegistry(fas_id, date, index, count, value) {
+async function changeValueRegistry(fas_id, base_date, date, index, count, value) {
     var delta_days = date_module.getDelta(date, base_date);
     
     var row = delta_days * 2 + 3;
@@ -137,7 +135,7 @@ async function changeValueRegistry(fas_id, date, index, count, value) {
     return 1;
 }
 
-async function changeValueTask(fas_id, date, class_index, task_index, value) {
+async function changeValueTask(fas_id, base_date, date, class_index, task_index, value) {
     var delta_weeks = date_module.getDelta(date, base_date, 'weeks');
     
     var row = delta_weeks * 12 + 5 + task_index;
@@ -150,7 +148,7 @@ async function changeValueTask(fas_id, date, class_index, task_index, value) {
     return 1;
 }
 
-async function addTask(fas_id, date, class_index, task_index, task, state) {
+async function addTask(fas_id, base_date, date, class_index, task_index, task, state) {
     var delta_weeks = date_module.getDelta(date, base_date, 'weeks');
     
     var row = delta_weeks * 12 + 5 + task_index;
@@ -164,7 +162,7 @@ async function addTask(fas_id, date, class_index, task_index, task, state) {
     return 1;
 }
 
-var getRegistryDay = async function(fas_id, date) {
+var getRegistryDay = async function(fas_id, base_date, date) {
     var delta_days = date_module.getDelta(date, base_date);
     var row = delta_days * 2 + 2;
     var range = 'REGISTO!F' + row.toString() + ':O' + (row+1).toString();
@@ -186,7 +184,7 @@ var getRegistryDay = async function(fas_id, date) {
     return info;
 }
 
-var getTasks = async function(fas_id, date) {
+var getTasks = async function(fas_id, base_date, classes, date) {
     var delta_weeks = date_module.getDelta(date, base_date, 'weeks');;
     
     var row = delta_weeks * 12 + 5;

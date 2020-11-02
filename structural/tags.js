@@ -18,7 +18,7 @@ function description_registry_callback(tags, user) {
     else blacklist = [];
 
     var different_events = []
-    fas.getRegistryDay(user.getFasFile(), date).then(function(info) {
+    fas.getRegistryDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(info) {
         info.map(event_item => {
             if (!different_events.includes(event_item.description) && !blacklist.includes(event_item.state)) {
                 different_events.push(event_item.description);
@@ -44,7 +44,7 @@ function class_description_callback(tags, user) {
     if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
-    fas.getTasks(user.getFasFile(), date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         info.map(class_item => {
             opts['keyboard'].reply_markup.keyboard.push([class_item.name]);
         });
@@ -67,7 +67,7 @@ function task_description_callback(tags, user) {
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
     let classDescription = classDescriptionTag.getValue();
 
-    fas.getTasks(user.getFasFile(), date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         var class_item = info.find(item => item.name == classDescription);
 
         class_item.tasks.map(task => {

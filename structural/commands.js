@@ -11,6 +11,7 @@ let classes = require('./classes.js');
 let CommandInterface = classes.CommandInterface;
 
 const Tags = require('./tags.js');
+const ChatInformation = require('./user').ChatInformation;
 
 function start_function(tags, user) {
     var opts = modelForOpts();
@@ -25,8 +26,10 @@ function start_function(tags, user) {
 
 async function fas_setup_function(tags, user) {
     var opts = modelForOpts();
-    fas.setupConst(user.getFasFile()).then(function(schedule) {
-        user.setFasSchedule(schedule);
+    fas.setupConst(user.getFasFile()).then(function(info) {
+        user.setFasBaseDate(info[0]);
+        user.setFasClasses(info[1]);
+        user.setFasSchedule(info[2]);
         bot.sendMessage(user.getChatId(), "Clean Setup Done", opts['normal']);
     });
 }
@@ -53,7 +56,7 @@ function show_registry_function(tags, user) {
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
 
-    fas.getRegistryDay(user.getFasFile(), date).then(function(info) {
+    fas.getRegistryDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(info) {
         if (info.length == 0) {
             bot.sendMessage(user.getChatId(), 'There was nothing to register that day!');
             return;
@@ -81,7 +84,7 @@ function show_tasks_function(tags, user) {
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
 
-    fas.getTasks(user.getFasFile(), date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         for (var class_index = 0; class_index < info.length; class_index++) {
             var perfect = true;
             current_class = info[class_index];
@@ -148,7 +151,7 @@ function add_task_function(tags, user) {
     let taskNameTag = tags.find(element => element.getName() == 'new_task_name');
     let valueTag = tags.find(element => element.getName() == 'value');
 
-    fas.getTasks(user.getFasFile(), date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
         var class_item = info[class_index];
 
@@ -159,7 +162,7 @@ function add_task_function(tags, user) {
         if (task_index >= 11) {
             bot.sendMessage(user.getChatId(), 'There is no space for more tasks in that class!', opts['normal']);
         } else {
-            fas.addTask(user.getFasFile(), date, class_index, task_index, taskNameTag.getValue(), valueTag.getValue()).then(function(value) {
+            fas.addTask(user.getFasFile(), user.getFasBaseDate(), date, class_index, task_index, taskNameTag.getValue(), valueTag.getValue()).then(function(value) {
                 if (value == -1) bot.sendMessage(user.getChatId(), 'There was a problem adding the task!', opts['normal']);
                 else bot.sendMessage(user.getChatId(), 'Task added <b>successfully</b>!', opts['normal']);
             });
@@ -237,11 +240,14 @@ function autoRegistry() {
 
             var message = 'Do you wish to mark ' + event['class'] + ' class?\n';
             message += 'Room: ' + event['room'];
-
             let predefinedTags = [ new Tags.description_registry(event['class']) ];
 
             bot.sendMessage(user.getChatId(), message, opts['keyboard']);
-            global.createCommandAndRun(ChangeRegistryCommand, user.getChatInformation(), predefinedTags);
+            chatInformation = user.getChatInformation();
+            if (chatInformation == undefined | chatInformation == null)
+                chatInformation = new ChatInformation(chatId, undefined, undefined);
+
+            global.createCommandAndRun(ChangeRegistryCommand, chatInformation, predefinedTags);
         });
     });
 }
@@ -307,7 +313,7 @@ function changeValueRegistry(tags, user, successMessage, errorMessage) {
     let descriptionTag = tags.find(element => element.getName() == 'description_registry');
     let valueTag = tags.find(element => element.getName() == 'value');
 
-    fas.getRegistryDay(date).then(function(info) {
+    fas.getRegistryDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(info) {
         var indexes = []
         for (var event_index = 0; event_index < info.length; event_index++)
             if (info[event_index].description == descriptionTag.getValue())
@@ -316,7 +322,7 @@ function changeValueRegistry(tags, user, successMessage, errorMessage) {
         count = indexes.length;
         index = indexes[0];
     
-        fas.changeValueRegistry(date, index, count, valueTag.getValue()).then(function(value) {
+        fas.changeValueRegistry(user.getFasFile(), user.getFasBaseDate(), date, index, count, valueTag.getValue()).then(function(value) {
             if (value == -1) bot.sendMessage(user.getChatId(), errorMessage, opts['normal']);
             else bot.sendMessage(user.getChatId(), successMessage, opts['normal']);
         });
@@ -335,13 +341,13 @@ function changeValueTask(tags, user, successMessage, errorMessage) {
     let taskDescriptionTag = tags.find(element => element.getName() == 'task_description');
     let valueTag = tags.find(element => element.getName() == 'value');
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
 
         var class_item = info[class_index];
         var task_index = class_item.tasks.findIndex(item => item.name == taskDescriptionTag.getValue());
         
-        fas.changeValueTask(date, class_index, task_index, valueTag.getValue()).then(function(value) {
+        fas.changeValueTask(user.getFasFile(), user.getFasBaseDate(), date, class_index, task_index, valueTag.getValue()).then(function(value) {
             if (value == -1) bot.sendMessage(user.getChatId(), errorMessage, opts['normal']);
             else bot.sendMessage(user.getChatId(), successMessage, opts['normal']);
         });
