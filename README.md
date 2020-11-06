@@ -87,23 +87,24 @@ class NewCommand extends CommandInterface {
 
 ### `Commands Available`
 
-Command Class | Command Name | Predefined Tags | Non-Optional Tags | Optional Tags
-------------- | :----------: | :-------------: | :---------------: | :-----------:
-`StartCommand` | Start | | | 
-`FasSetupCommand` | Fas Setup | | | 
-`FasPrintCommand` | Fas Print | | | 
-`ShowRegistryCommand` | Show Registry | | | <ul><li>`DateTag`</li><li>`TotalTag`</li></ul>
-`MarkRegistryCommand` | Marking Registry | <ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul> |<ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`UnmarkRegistryCommand` | Unmarking Registry | <ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul> |<ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`ChangeRegistryCommand` | Changing Registry | | <ul><li>`ValueTag`</li><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`ShowTasksCommand` | Show Tasks | | | <ul><li>`DateTag`</li><li>`TotalTag`</li></ul>
-`MarkTaskCommand` | Marking Tasks | <ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul> |<ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`UnmarkTaskCommand` | Unmarking Tasks | <ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul> |<ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`ChangeTaskCommand` | Changing Tasks | | <ul><li>`ValueTag`</li><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`AddTaskCommand` | Adding Task | | <ul><li>`ClassDescriptionTag`</li><li>`NewTaskNameCallback`</li><li>`ValueTag`</li> | <ul><li>`DateTag`</li></ul>
-`AddPhraseOfTheDayCommand` | Adding Phrase Of The Day | | <ul><li>`PhraseOfTheDayTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`ScheduleCommand` | Schedule | | | 
-`ScheduleCheckRegistryCommand` | Schedule Check Registry | | |
+Command Class | Command Name | Needed Tags | Optional Tags
+------------- | :----------: | :---------- | :------------
+`StartCommand` | Start | | 
+`FasSetupCommand` | Fas Setup | | 
+`FasPrintCommand` | Fas Print | | 
+`ShowRegistryCommand` | Show Registry | | <ul><li>`DateTag`</li><li>`TotalTag`</li></ul>
+`MarkRegistryCommand` | Marking Registry | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`UnmarkRegistryCommand` | Unmarking Registry | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`ChangeRegistryCommand` | Changing Registry | <b>Predefined:</b><ul><li>`ValuesListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ValueTag`</li><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`ShowTasksCommand` | Show Tasks | | <ul><li>`DateTag`</li><li>`TotalTag`</li></ul>
+`MarkTaskCommand` | Marking Tasks | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`UnmarkTaskCommand` | Unmarking Tasks | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`ChangeTaskCommand` | Changing Tasks | <b>Predefined:</b><ul><li>`ValuesListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ValueTag`</li><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`AddTaskCommand` | Adding Task | <b>Predefined:</b><ul><li>`ValuesListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ClassDescriptionTag`</li><li>`NewTaskNameCallback`</li><li>`ValueTag`</li> | <ul><li>`DateTag`</li></ul>
+`AddPhraseOfTheDayCommand` | Adding Phrase Of The Day | <b>Non-Optional Tags:</b><ul><li>`PhraseOfTheDayTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`SetFasCommand` | Set Fas File | <b>Predefined:</b><ul><li>`ValueStringTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ValueTag`</li></ul>
+`ScheduleCommand` | Schedule | | 
+`ScheduleCheckRegistryCommand` | Schedule Check Registry | | 
 
 It is important to note that when it comes to the `Non-Optional Tags`, this are parsed in the respective order. Since the parsing of a specific tag might need the prior parsing of another tag.
 
@@ -133,6 +134,8 @@ Tag Class | Tag Itself | Type of Value | Description
 `TotalTag` | `total` | None | Wheter to use backlist values or not
 `DateTag` | `date` | Keyword / ISO format | Date to use in the command execution
 `ValueTag` | `value` | Any | Value to place
+`ValuesListTag` | `values_list` | List of Strings | List of predefined values to appear in keyboard
+`ValueStringTag` | `value_string` | String | Query to be sent when asking for input from user
 `BlacklistTag` | `blacklist` | Any | Blacklist of values not to show user
 `DescriptionRegistryTag` | `description_registry` | String of Event | For `Event` selection
 `ClassDescriptionTag` | `class_description` | String of Class | For `Class` selection
