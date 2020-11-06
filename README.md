@@ -1,4 +1,4 @@
-# **Telegram Bot:** Sousa's Personal Assistant
+# **Telegram Bot** - Sousa's Personal Assistant
 
 ## **Brief Motivation**
 This is a project very customized and personalized for personal use so in all honesty ... I doubt there is any use for you personally.
@@ -15,7 +15,7 @@ This project runs through *node.js* and easily allows the user to code in new **
 
 ---
 ## **File System**
-[Back to the top](#telegram-bot:-sousa's-personal-assistant)
+[Back to the top](#telegram-bot---sousas-personal-assistant)
 ```
 .
 ├── README.md
@@ -41,7 +41,7 @@ This project runs through *node.js* and easily allows the user to code in new **
 ---
 
 ## **Telegram Commands**
-[Back to the top](#telegram-bot:-sousa's-personal-assistant)
+[Back to the top](#telegram-bot---sousas-personal-assistant)
 
 Name | Description | Correspondind Command
 -----|------------ | ---------------------
@@ -69,7 +69,7 @@ Name | Description | Shceduled Time | Command
 ---
 
 ## **Commands**
-[Back to the top](#telegram-bot:-sousa's-personal-assistant)
+[Back to the top](#telegram-bot---sousas-personal-assistant)
 
 All commands are defined in the *structural* file named [commands.js].
 To every and each new command it can and shall be defined it's `name`, `main command function` and `list of tags`.
@@ -113,7 +113,7 @@ It is important to note that when it comes to the `Non-Optional Tags`, this are 
 ---
 
 ## **Tags**
-[Back to the top](#telegram-bot:-sousa's-personal-assistant)
+[Back to the top](#telegram-bot---sousas-personal-assistant)
 
 All tags are defined in the *structural* file named [tags.js].
 To every and each new command it can be defined it's `pre-processing function` and `pos-processing`.
