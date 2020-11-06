@@ -264,20 +264,21 @@ function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist
 class MarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Marking Registry", mark_registry_function, mark_registry_tags()) } };
 function unmark_registry_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.description_registry() ] };
 class UnmarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Registry", unmark_registry_function, unmark_registry_tags()) } };
-function change_registry_tags() { return [ new Tags.description_registry(), new Tags.value() ] };
+function change_registry_tags() { return [ new Tags.description_registry(), new Tags.values_list(['x', 'não houve', '']), new Tags.value() ] };
 class ChangeRegistryCommand extends CommandInterface { constructor(user) { super(user, "Changing Registry", change_registry_function, change_registry_tags()) } };
 function mark_task_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.class_description(), new Tags.task_description() ] };
 class MarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Marking Tasks", mark_task_function, mark_task_tags()) } };
 function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ] };
 class UnmarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
-function change_task_tags() { return [ new Tags.class_description(), new Tags.task_description(), new Tags.value() ] };
+function change_task_tags() { return [ new Tags.class_description(), new Tags.task_description(), new Tags.values_list(['x', '']), new Tags.value() ] };
 class ChangeTaskCommand extends CommandInterface { constructor(user) { super(user, "Changing Tasks", change_task_function, change_task_tags()) } };
-function new_task_tags() { return [ new Tags.class_description(), new Tags.new_task_name(), new Tags.value() ] };
+function new_task_tags() { return [ new Tags.class_description(), new Tags.new_task_name(), new Tags.values_list(['x', '']), new Tags.value() ] };
 class AddTaskCommand extends CommandInterface { constructor(user) { super(user, "Adding Task", add_task_function, new_task_tags()) } };
+
 
 function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
 class AddPhraseOfTheDayCommand extends CommandInterface { constructor(user) { super(user, "Adding Phrase Of The Day", add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
-function set_fas_tags() { return [ new Tags.value() ] };
+function set_fas_tags() { return [ new Tags.value_string('What is the ID of your FAS file?'), new Tags.value() ] };
 class SetFasCommand extends CommandInterface { constructor(user) { super(user, "Set Fas File", set_fas, set_fas_tags()) } };
 
 const commands = {

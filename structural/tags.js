@@ -93,8 +93,21 @@ function phrase_callback(tags, user) {
 
 function value_callback(tags, user) {
     var opts = modelForOpts();
+    var query = "What value do you wish to place in the event?";
+    let valuesListTag = tags.find(element => element.getName() == 'values_list');
+    let valueStringTag = tags.find(element => element.getName() == 'value_string');
 
-    bot.sendMessage(user.getChatId(), "What value do you wish to place in the event?", opts['normal']);
+    if (valueStringTag != undefined) query = valueStringTag.getValue();
+
+    if (valuesListTag != undefined && valuesListTag.getValue() != undefined) {
+        valuesListTag.getValue().map(valueItem => {
+            opts['keyboard'].reply_markup.keyboard.push([valueItem]);
+        });
+
+        bot.sendMessage(user.getChatId(), query, opts['keyboard']);
+    } else {
+        bot.sendMessage(user.getChatId(), query, opts['normal']);
+    }
 }
 
 function new_task_name_callback(tags, user) {
@@ -103,6 +116,9 @@ function new_task_name_callback(tags, user) {
 }
 
 class TotalTag extends TagInterface { constructor() { super("total", undefined, undefined, true) } };
+
+class ValuesListTag extends TagInterface { constructor(value) { super("values_list", undefined, undefined, value) } };
+class ValueStringTag extends TagInterface { constructor(value) { super("value_string", undefined, undefined, value) } };
 
 class DateTag extends TagInterface { constructor(value) { super("date", undefined, undefined, value) } };
 class ValueTag extends TagInterface { constructor(value) { super("value", value_callback, undefined, value) } };
@@ -117,6 +133,8 @@ const commands = {
     'date': DateTag,
     'total': TotalTag,
     'value': ValueTag,
+    'values_list': ValuesListTag,
+    'value_string': ValueStringTag,
     'blacklist': BlacklistTag,
     'description_registry': DescriptionRegistryTag,
     'class_description': ClassDescriptionTag,
