@@ -1,4 +1,4 @@
-# **Telegram Bot** - Sousa's Personal Assistant
+# **Telegram Bot:** Sousa's Personal Assistant
 
 ## **Brief Motivation**
 This is a project very customized and personalized for personal use so in all honesty ... I doubt there is any use for you personally.
@@ -15,7 +15,7 @@ This project runs through *node.js* and easily allows the user to code in new **
 
 ---
 ## **File System**
-[Back to the top](#Telegram-Bot---Sousa's-Personal-Assistant)
+[Back to the top](#telegram-bot:-sousa's-personal-assistant)
 ```
 .
 ├── README.md
@@ -41,7 +41,7 @@ This project runs through *node.js* and easily allows the user to code in new **
 ---
 
 ## **Telegram Commands**
-[Back to the top](#Telegram-Bot---Sousa's-Personal-Assistant)
+[Back to the top](#telegram-bot:-sousa's-personal-assistant)
 
 Name | Description | Correspondind Command
 -----|------------ | ---------------------
@@ -69,7 +69,7 @@ Name | Description | Shceduled Time | Command
 ---
 
 ## **Commands**
-[Back to the top](#Telegram-Bot---Sousa's-Personal-Assistant)
+[Back to the top](#telegram-bot:-sousa's-personal-assistant)
 
 All commands are defined in the *structural* file named [commands.js].
 To every and each new command it can and shall be defined it's `name`, `main command function` and `list of tags`.
@@ -88,21 +88,21 @@ class NewCommand extends CommandInterface {
 ### `Commands Available`
 
 Command Class | Command Name | Needed Tags | Optional Tags
-------------- | :----------: | :---------- | :------------
+------------- | ------------ | ----------- | -------------
 `StartCommand` | Start | | 
 `FasSetupCommand` | Fas Setup | | 
 `FasPrintCommand` | Fas Print | | 
 `ShowRegistryCommand` | Show Registry | | <ul><li>`DateTag`</li><li>`TotalTag`</li></ul>
-`MarkRegistryCommand` | Marking Registry | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`UnmarkRegistryCommand` | Unmarking Registry | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`ChangeRegistryCommand` | Changing Registry | <b>Predefined:</b><ul><li>`ValuesListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ValueTag`</li><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`MarkRegistryCommand` | Marking Registry | Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul>Non-Optional Tags:</b><ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`UnmarkRegistryCommand` | Unmarking Registry | Predefined:<ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul>Non-Optional Tags:<ul><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`ChangeRegistryCommand` | Changing Registry | Predefined:<ul><li>`ValuesListTag`</li></ul>Non-Optional Tags:<ul><li>`ValueTag`</li><li>`DescriptionRegistryTag`</li></ul> | <ul><li>`DateTag`</li></ul>
 `ShowTasksCommand` | Show Tasks | | <ul><li>`DateTag`</li><li>`TotalTag`</li></ul>
-`MarkTaskCommand` | Marking Tasks | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`UnmarkTaskCommand` | Unmarking Tasks | <b>Predefined:</b><ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`ChangeTaskCommand` | Changing Tasks | <b>Predefined:</b><ul><li>`ValuesListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ValueTag`</li><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`AddTaskCommand` | Adding Task | <b>Predefined:</b><ul><li>`ValuesListTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ClassDescriptionTag`</li><li>`NewTaskNameCallback`</li><li>`ValueTag`</li> | <ul><li>`DateTag`</li></ul>
-`AddPhraseOfTheDayCommand` | Adding Phrase Of The Day | <b>Non-Optional Tags:</b><ul><li>`PhraseOfTheDayTag`</li></ul> | <ul><li>`DateTag`</li></ul>
-`SetFasCommand` | Set Fas File | <b>Predefined:</b><ul><li>`ValueStringTag`</li></ul><b>Non-Optional Tags:</b><ul><li>`ValueTag`</li></ul>
+`MarkTaskCommand` | Marking Tasks | Predefined:<ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul>Non-Optional Tags:<ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`UnmarkTaskCommand` | Unmarking Tasks | Predefined:<ul><li>`ValueTag`</li><li>`BlackListTag`</li></ul>Non-Optional Tags:<ul><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`ChangeTaskCommand` | Changing Tasks | Predefined:<ul><li>`ValuesListTag`</li></ul>Non-Optional Tags:<ul><li>`ValueTag`</li><li>`ClassDescriptionTag`</li><li>`TaskDescriptionTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`AddTaskCommand` | Adding Task | Predefined:<ul><li>`ValuesListTag`</li></ul>Non-Optional Tags:<ul><li>`ClassDescriptionTag`</li><li>`NewTaskNameCallback`</li><li>`ValueTag`</li> | <ul><li>`DateTag`</li></ul>
+`AddPhraseOfTheDayCommand` | Adding Phrase Of The Day | Non-Optional Tags:<ul><li>`PhraseOfTheDayTag`</li></ul> | <ul><li>`DateTag`</li></ul>
+`SetFasCommand` | Set Fas File | Predefined:<ul><li>`ValueStringTag`</li></ul>Non-Optional Tags:<ul><li>`ValueTag`</li></ul>
 `ScheduleCommand` | Schedule | | 
 `ScheduleCheckRegistryCommand` | Schedule Check Registry | | 
 
@@ -113,7 +113,7 @@ It is important to note that when it comes to the `Non-Optional Tags`, this are 
 ---
 
 ## **Tags**
-[Back to the top](#Telegram-Bot---Sousa's-Personal-Assistant)
+[Back to the top](#telegram-bot:-sousa's-personal-assistant)
 
 All tags are defined in the *structural* file named [tags.js].
 To every and each new command it can be defined it's `pre-processing function` and `pos-processing`.
