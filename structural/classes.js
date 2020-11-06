@@ -49,9 +49,10 @@ class TagInterface {
 }
 
 class CommandInterface {
-    constructor(user, name, callback, tagsList = []) {
+    constructor(user, name, verify, callback, tagsList = []) {
         this.user = user;
         this.name = name;
+        this.verify = verify;
         this.callback = callback;
         this.tags = tagsList;
         this.activeTag = undefined;
@@ -89,6 +90,8 @@ class CommandInterface {
     }
 
     run() {
+        if (this.verify != undefined && !this.verify(this.tags, this.user)) return false;
+
         logger.log.info(this.name + ' Command');
         logger.log.info(this.toString());
         this.activeTag = undefined;

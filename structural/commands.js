@@ -13,6 +13,8 @@ let CommandInterface = classes.CommandInterface;
 const Tags = require('./tags.js');
 const ChatInformation = require('./user').ChatInformation;
 
+// --------------- COMMAND FUNCTIONS ---------------
+
 function start_function(tags, user) {
     var opts = modelForOpts();
     var message = 'Hello <b>' + user.getFirstName() + ' ' + user.getLastName() + '</b>,\n';
@@ -219,10 +221,31 @@ function set_fas(tags, user) {
 
     let valueTag = tags.find(element => element.getName() == 'value');
     user.setFasFile(valueTag.getValue());
-    fas.setupConst(user.getFasFile()).then(function(schedule) {
-        user.setFasSchedule(schedule);
+    fas.setupConst(user.getFasFile()).then(function(info) {
+        user.setFasBaseDate(info[0]);
+        user.setFasClasses(info[1]);
+        user.setFasSchedule(info[2]);
         bot.sendMessage(user.getChatId(), "Fas file set successfully", opts['normal']);
     });
+}
+
+// --------------- VERIFY FUNCTIONS ---------------
+
+function command_fas_verify(tags, user) {
+    var opts = modelForOpts();
+
+    if (user.getFasFile() == undefined) {
+        chatInformation = user.getChatInformation();
+        if (chatInformation == undefined | chatInformation == null)
+            chatInformation = new ChatInformation(chatId, undefined, undefined);
+
+        bot.sendMessage(user.getChatId(), "Please set your FAS file first!", opts['normal']);
+        global.createCommandAndRun(SetFasCommand, chatInformation, undefined);
+        return false;
+
+    } else {
+        return true;
+    }
 }
 
 // --------------- STARTING SCHEDULES ---------------
@@ -252,34 +275,34 @@ function autoRegistry() {
     });
 }
 
-class StartCommand extends CommandInterface { constructor(user) { super(user, "Start", start_function) } };
-class FasSetupCommand extends CommandInterface { constructor(user) { super(user, "Fas Setup", fas_setup_function) } };
-class FasPrintCommand extends CommandInterface { constructor(user) { super(user, "Fas Print", fas_print_function) } };
-class ShowRegistryCommand extends CommandInterface { constructor(user) { super(user, "Show Registry", show_registry_function) } };
-class ShowTasksCommand extends CommandInterface { constructor(user) { super(user, "Show Tasks", show_tasks_function) } };
-class ScheduleCommand extends CommandInterface { constructor(user) { super(user, "Schedule", schedule_function) } };
-class ScheduleCheckRegistryCommand extends CommandInterface { constructor(user) { super(user, "Schedule Check Registry", schedule_check_registry_function) } };
+class StartCommand extends CommandInterface { constructor(user) { super(user, "Start", undefined, start_function) } };
+class FasSetupCommand extends CommandInterface { constructor(user) { super(user, "Fas Setup", command_fas_verify, fas_setup_function) } };
+class FasPrintCommand extends CommandInterface { constructor(user) { super(user, "Fas Print", command_fas_verify, fas_print_function) } };
+class ShowRegistryCommand extends CommandInterface { constructor(user) { super(user, "Show Registry", command_fas_verify, show_registry_function) } };
+class ShowTasksCommand extends CommandInterface { constructor(user) { super(user, "Show Tasks", command_fas_verify, show_tasks_function) } };
+class ScheduleCommand extends CommandInterface { constructor(user) { super(user, "Schedule", undefined, schedule_function) } };
+class ScheduleCheckRegistryCommand extends CommandInterface { constructor(user) { super(user, "Schedule Check Registry", command_fas_verify, schedule_check_registry_function) } };
 
 function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.description_registry() ] };
-class MarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Marking Registry", mark_registry_function, mark_registry_tags()) } };
+class MarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Marking Registry", command_fas_verify, mark_registry_function, mark_registry_tags()) } };
 function unmark_registry_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.description_registry() ] };
-class UnmarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Registry", unmark_registry_function, unmark_registry_tags()) } };
+class UnmarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Registry", command_fas_verify, unmark_registry_function, unmark_registry_tags()) } };
 function change_registry_tags() { return [ new Tags.description_registry(), new Tags.values_list(['x', 'não houve', '']), new Tags.value() ] };
-class ChangeRegistryCommand extends CommandInterface { constructor(user) { super(user, "Changing Registry", change_registry_function, change_registry_tags()) } };
+class ChangeRegistryCommand extends CommandInterface { constructor(user) { super(user, "Changing Registry", command_fas_verify, change_registry_function, change_registry_tags()) } };
 function mark_task_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.class_description(), new Tags.task_description() ] };
-class MarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Marking Tasks", mark_task_function, mark_task_tags()) } };
+class MarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Marking Tasks", command_fas_verify, mark_task_function, mark_task_tags()) } };
 function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ] };
-class UnmarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
+class UnmarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Tasks", command_fas_verify, unmark_task_function, unmark_task_tags()) } };
 function change_task_tags() { return [ new Tags.class_description(), new Tags.task_description(), new Tags.values_list(['x', '']), new Tags.value() ] };
-class ChangeTaskCommand extends CommandInterface { constructor(user) { super(user, "Changing Tasks", change_task_function, change_task_tags()) } };
+class ChangeTaskCommand extends CommandInterface { constructor(user) { super(user, "Changing Tasks", command_fas_verify, change_task_function, change_task_tags()) } };
 function new_task_tags() { return [ new Tags.class_description(), new Tags.new_task_name(), new Tags.values_list(['x', '']), new Tags.value() ] };
-class AddTaskCommand extends CommandInterface { constructor(user) { super(user, "Adding Task", add_task_function, new_task_tags()) } };
+class AddTaskCommand extends CommandInterface { constructor(user) { super(user, "Adding Task", command_fas_verify, add_task_function, new_task_tags()) } };
 
 
 function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
-class AddPhraseOfTheDayCommand extends CommandInterface { constructor(user) { super(user, "Adding Phrase Of The Day", add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
+class AddPhraseOfTheDayCommand extends CommandInterface { constructor(user) { super(user, "Adding Phrase Of The Day", undefined, add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
 function set_fas_tags() { return [ new Tags.value_string('What is the ID of your FAS file?'), new Tags.value() ] };
-class SetFasCommand extends CommandInterface { constructor(user) { super(user, "Set Fas File", set_fas, set_fas_tags()) } };
+class SetFasCommand extends CommandInterface { constructor(user) { super(user, "Set Fas File", undefined, set_fas, set_fas_tags()) } };
 
 const commands = {
     StartCommand: StartCommand,
