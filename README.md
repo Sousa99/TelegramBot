@@ -57,6 +57,8 @@ Name | Description | Correspondind Command
 `unmark_task` | Unmark a specific task | `MarkTaskCommand`
 `change_task` | Change a specific task | `UnmarkTaskCommand`
 `add_task` | Add a task to a specific class | `ChangeTaskCommand`
+`set_fas` | Set FAS file of user | `SetFasCommand`
+`get_fas` | Get FAS file and instructions on how to add it | `GetFasCommand`
 `phrase_of_the_day` | Add a phrase of the day to a temp file | `AddPhraseOfTheDayCommand`
 `schedule` | Start a specific schedule | `AddTaskCommand`
 
@@ -103,6 +105,7 @@ Command Class | Command Name | Needed Tags | Optional Tags
 `AddTaskCommand` | Adding Task | Predefined:<ul><li>`ValuesListTag`</li></ul>Non-Optional Tags:<ul><li>`ClassDescriptionTag`</li><li>`NewTaskNameCallback`</li><li>`ValueTag`</li> | <ul><li>`DateTag`</li></ul>
 `AddPhraseOfTheDayCommand` | Adding Phrase Of The Day | Non-Optional Tags:<ul><li>`PhraseOfTheDayTag`</li></ul> | <ul><li>`DateTag`</li></ul>
 `SetFasCommand` | Set Fas File | Predefined:<ul><li>`ValueStringTag`</li></ul>Non-Optional Tags:<ul><li>`ValueTag`</li></ul>
+`GetFasCommand` | Get Fas File | | 
 `ScheduleCommand` | Schedule | | 
 `ScheduleCheckRegistryCommand` | Schedule Check Registry | | 
 

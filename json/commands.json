@@ -14,7 +14,8 @@
         {"tag": "add_task", "description": "Add a task to a specific class" },
         {"tag": "schedule", "description": "Start a specific schedule" },
         {"tag": "phrase_of_the_day", "description": "Add a phrase of the day to a temp file" },
-        {"tag": "set_fas", "description": "Set fas file of user" }
+        {"tag": "set_fas", "description": "Set FAS file of user" },
+        {"tag": "get_fas", "description": "Get FAS file and instructions on how to add it" }
     ],
 
     "schedules": [

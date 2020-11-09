@@ -1,6 +1,7 @@
 var moment = require('moment');
 var schedule = require('node-schedule');
 var fs = require('fs');
+var readline = require('readline');
 
 var commandsList = require('../json/commands.json');
 var fas = require('../modules/fas.js');
@@ -216,7 +217,7 @@ function schedule_check_registry_function(tags, user) {
     }
 }
 
-function set_fas(tags, user) {
+function set_fas_function(tags, user) {
     var opts = modelForOpts();
 
     let valueTag = tags.find(element => element.getName() == 'value');
@@ -226,6 +227,20 @@ function set_fas(tags, user) {
         user.setFasClasses(info[1]);
         user.setFasSchedule(info[2]);
         bot.sendMessage(user.getChatId(), "Fas file set successfully", opts['normal']);
+    });
+}
+
+function get_fas_function(tags, user) {
+    var opts = modelForOpts();
+
+    const reader = readline.createInterface({
+        input: fs.createReadStream('./json/setupFas.html'),
+        output: process.stdout,
+        terminal: false
+    });
+
+    reader.on('line', (line) => {
+        bot.sendMessage(user.getChatId(), line, opts['normal']);
     });
 }
 
@@ -302,7 +317,8 @@ class AddTaskCommand extends CommandInterface { constructor(user) { super(user, 
 function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
 class AddPhraseOfTheDayCommand extends CommandInterface { constructor(user) { super(user, "Adding Phrase Of The Day", undefined, add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
 function set_fas_tags() { return [ new Tags.value_string('What is the ID of your FAS file?'), new Tags.value() ] };
-class SetFasCommand extends CommandInterface { constructor(user) { super(user, "Set Fas File", undefined, set_fas, set_fas_tags()) } };
+class SetFasCommand extends CommandInterface { constructor(user) { super(user, "Set Fas File", undefined, set_fas_function, set_fas_tags()) } };
+class GetFasCommand extends CommandInterface { constructor(user) { super(user, "Get Fas File", undefined, get_fas_function, undefined) } };
 
 const commands = {
     StartCommand: StartCommand,
@@ -322,7 +338,8 @@ const commands = {
     AddTaskCommand: AddTaskCommand,
 
     AddPhraseOfTheDayCommand: AddPhraseOfTheDayCommand,
-    SetFasCommand: SetFasCommand
+    SetFasCommand: SetFasCommand,
+    GetFasCommand: GetFasCommand
 }
 
 module.exports = commands;
