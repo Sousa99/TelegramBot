@@ -269,23 +269,30 @@ schedule.scheduleJob('0 50 * * * *', autoRegistry);
 
 // --------------- SCHEDULE FUNCTIONS ---------------
 function autoRegistry() {
+    let date = moment();
+
     usersWithSchedule = botInformation.getUsersWithSchedule('check-registry');
     usersWithSchedule.forEach(chatId => {
         let user = botInformation.getUser(chatId);
-        fas.checkMarking(user.getFasSchedule()).then(function(event) {
-            var opts = modelForOpts();
-            if (event == null) return;
 
-            var message = 'Do you wish to mark ' + event['class'] + ' class?\n';
-            message += 'Room: ' + event['room'];
-            let predefinedTags = [ new Tags.description_registry(event['class']) ];
+        fas.checkClassDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(class_day) {
+            if (!class_day) return;
 
-            bot.sendMessage(user.getChatId(), message, opts['keyboard']);
-            chatInformation = user.getChatInformation();
-            if (chatInformation == undefined | chatInformation == null)
-                chatInformation = new ChatInformation(chatId, undefined, undefined);
+            fas.checkMarking(user.getFasSchedule()).then(function(event) {
+                var opts = modelForOpts();
+                if (event == null) return;
 
-            global.createCommandAndRun(ChangeRegistryCommand, chatInformation, predefinedTags);
+                var message = 'Do you wish to mark ' + event['class'] + ' class?\n';
+                message += 'Room: ' + event['room'];
+                let predefinedTags = [ new Tags.description_registry(event['class']) ];
+
+                bot.sendMessage(user.getChatId(), message, opts['keyboard']);
+                chatInformation = user.getChatInformation();
+                if (chatInformation == undefined | chatInformation == null)
+                    chatInformation = new ChatInformation(chatId, undefined, undefined);
+
+                global.createCommandAndRun(ChangeRegistryCommand, chatInformation, predefinedTags);
+            });
         });
     });
 }

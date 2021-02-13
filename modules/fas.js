@@ -184,6 +184,16 @@ var getRegistryDay = async function(fas_id, base_date, date) {
     return info;
 }
 
+var checkClassDay = async function(fas_id, base_date, date) {
+    var delta_days = date_module.getDelta(date, base_date);
+    var row = delta_days * 2 + 2;
+    var range = 'REGISTO!C' + row.toString();
+
+    data = await gsGet(fas_id, range);
+    var class_day = data.data.values.flat()[0] == 'Aulas';
+    return class_day;
+}
+
 var getTasks = async function(fas_id, base_date, classes, date) {
     var delta_weeks = date_module.getDelta(date, base_date, 'weeks');;
     
@@ -248,6 +258,7 @@ function printSchedule(schedule) {
 
 exports.setupConst = setupConst;
 exports.getRegistryDay = getRegistryDay;
+exports.checkClassDay = checkClassDay;
 exports.getTasks = getTasks;
 exports.changeValueRegistry = changeValueRegistry;
 exports.changeValueTask = changeValueTask;
