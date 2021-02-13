@@ -32,15 +32,15 @@ class TagInterface {
         return string;
     }
 
-    run(tags, chatInformation) {
+    run(tags, user) {
         logger.log.info('Setting up tag ' + this.name);
-        return this.callback(tags, chatInformation);
+        return this.callback(tags, user);
     }
 
-    async verify(tags, chatInformation) {
+    async verify(tags, user) {
         logger.log.info('Verifying tag ' + this.name);
         if (this.verifyCallback != undefined) {
-            valid = this.verify(tags, chatInformation);
+            valid = this.verify(tags, user);
             return valid;
         }
 
@@ -49,9 +49,10 @@ class TagInterface {
 }
 
 class CommandInterface {
-    constructor(chatInformation, name, callback, tagsList = []) {
-        this.chatInformation = chatInformation;
+    constructor(user, name, verify, callback, tagsList = []) {
+        this.user = user;
         this.name = name;
+        this.verify = verify;
         this.callback = callback;
         this.tags = tagsList;
         this.activeTag = undefined;
@@ -76,6 +77,8 @@ class CommandInterface {
 
     toString() {
         var string = this.name + "\n"
+        string += "user chatId: " + this.user.getChatId() + "\n"
+
         if (this.callback) string += "callback: " + this.callback.name + "\n" 
         if (this.activeTag) string += "active tag: " + this.activeTag.toString() + "\n" 
         if (this.tags) {
@@ -87,6 +90,8 @@ class CommandInterface {
     }
 
     run() {
+        if (this.verify != undefined && !this.verify(this.tags, this.user)) return false;
+
         logger.log.info(this.name + ' Command');
         logger.log.info(this.toString());
         this.activeTag = undefined;
@@ -95,26 +100,17 @@ class CommandInterface {
             var tag = this.tags[tagIndex];
             this.activeTag = tag;
             if (tag.getValue() == undefined && tag.hasCallback()) {
-                var tagAborted = tag.run(this.tags, this.chatInformation);
+                var tagAborted = tag.run(this.tags, this.user);
                 return tagAborted;
             }
         }
 
-        this.callback(this.tags, this.chatInformation);
+        this.callback(this.tags, this.user);
         return true;
-    }
-}
-
-class ChatInformation {
-    constructor(chatId, msg, match) {
-        this.chatId = chatId;
-        this.msg = msg;
-        this.match = match;
     }
 }
 
 module.exports = {
     TagInterface: TagInterface,
-    CommandInterface: CommandInterface,
-    ChatInformation: ChatInformation,
+    CommandInterface: CommandInterface
 }

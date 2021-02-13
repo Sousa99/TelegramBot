@@ -1,16 +1,28 @@
 process.env.NTBA_FIX_319 = 1; // To disable telegram bot api deprecating warning
 var logger = require('./modules/logger.js');
-
-schedule_check_registry = false;
+var schedule = require('node-schedule');
+var fs = require('fs');
 
 var TelegramBot = require('node-telegram-bot-api');
 var tokens = require('./json/tokens.json');
-global.bot = new TelegramBot(tokens.telegram, { polling: true });
 
-const ChatInformation = require('./structural/classes.js').ChatInformation;
+let telegramToken = tokens['telegram'];
+const isDebugEnvFlag = process.env.NODE_ENV === 'debug';
+if (isDebugEnvFlag) telegramToken = tokens['telegram-debug'];
+
+const BotInformation = require('./structural/user.js').BotInformation;
+const User = require('./structural/user.js').User;
+const ChatInformation = require('./structural/user.js').ChatInformation;
+
 const Commands = require('./structural/commands.js');
 const Tags = require('./structural/tags.js');
+const { chat } = require('googleapis/build/src/apis/chat');
 
+logger.log.warn("Initializing Bot");
+if (isDebugEnvFlag) logger.log.info("In Debug Mode");
+
+global.botInformation = getBotState();
+global.bot = new TelegramBot(telegramToken, { polling: true });
 global.modelForOpts = function() {
     return {
         'normal': {parse_mode: 'HTML' },
@@ -26,14 +38,21 @@ global.modelForOpts = function() {
     }
 }
 
-logger.log.warn("Initializing Bot");
-var commandByChatId = {}
-
 function createCommandAndRun(CommandReference, chatInformation, predefinedTags) {
-    let command = new CommandReference(chatInformation);
+    let user = botInformation.getUser(chatInformation.chatId);
+    if (user == undefined) {
+        botInformation.addUser(new User(
+            chatInformation.chatId,
+            chatInformation.msg.from.first_name,
+            chatInformation.msg.from.last_name
+        ));
+        user = botInformation.getUser(chatInformation.chatId);
+    }
+    user.setChatInformation(chatInformation);
+    let command = new CommandReference(user);
     let match = chatInformation.match;
 
-    commandByChatId[chatInformation.chatId] = command;
+    botInformation.setCommandToChatId(user.getChatId(), command);
 
     let inputTags = [];
     if (match != undefined && match[1] != undefined)
@@ -47,11 +66,8 @@ function createCommandAndRun(CommandReference, chatInformation, predefinedTags) 
         command.setTag(tag);
     }
 
-    for (tagIndex in predefinedTags)
-        command.setTag(predefinedTags[tagIndex]);
-
-    if (command.run())
-        commandByChatId[chatInformation.chatId] = undefined;
+    for (tagIndex in predefinedTags) command.setTag(predefinedTags[tagIndex]);
+    if (command.run()) botInformation.setCommandToChatId(user.getChatId(), undefined);
 }
 global.createCommandAndRun = createCommandAndRun;
 
@@ -71,20 +87,31 @@ bot.onText(/\/unmark_task(.*)/, function(msg, match) { createCommandAndRun(Comma
 bot.onText(/\/change_task(.*)/, function(msg, match) { createCommandAndRun(Commands.ChangeTaskCommand, new ChatInformation(msg.chat.id, msg, match)) });
 bot.onText(/\/add_task(.*)/, function(msg, match) { createCommandAndRun(Commands.AddTaskCommand, new ChatInformation(msg.chat.id, msg, match)) });
 
-bot.onText(/\phrase_of_the_day(.*)/, function(msg, match) { createCommandAndRun(Commands.AddPhraseOfTheDayCommand, new ChatInformation(msg.chat.id, msg, match)) });
+bot.onText(/\/phrase_of_the_day(.*)/, function(msg, match) { createCommandAndRun(Commands.AddPhraseOfTheDayCommand, new ChatInformation(msg.chat.id, msg, match)) });
+bot.onText(/\/set_fas/, function(msg, match) { createCommandAndRun(Commands.SetFasCommand, new ChatInformation(msg.chat.id, msg, match)) });
+bot.onText(/\/get_fas/, function(msg, match) { createCommandAndRun(Commands.GetFasCommand, new ChatInformation(msg.chat.id, msg, match)) });
 
 bot.on('message', function(msg) {
+    let chatInformation = new ChatInformation(msg.chat.id, msg, undefined);
+    let user = botInformation.getUser(chatInformation.chatId);
+    if (user == undefined) {
+        botInformation.addUser(new User(
+            chatInformation.chatId,
+            chatInformation.msg.from.first_name,
+            chatInformation.msg.from.last_name
+        ));
+        user = botInformation.getUser(chatInformation.chatId);
+    }
 
     if (msg.text[0] == '/') {
-        commandByChatId[msg.chat.id] = undefined;
-    } else if (commandByChatId[msg.chat.id] != undefined) {
-        let command = commandByChatId[msg.chat.id];
+        botInformation.setCommandToChatId(user.getChatId(), undefined);
+    } else if ((command = botInformation.getCommandByChatId(user.getChatId())) != undefined) {
         let activeTag = command.getActiveTag();
         
         activeTag.setValue(msg.text);
         activeTag.verify(command.getTags(), new ChatInformation(msg.chat.id, msg, undefined)).then(function() {
             if (command.run())
-                commandByChatId[msg.chat.id] = undefined;
+                botInformation.setCommandToChatId(user.getChatId(), undefined);
         })
     }
 })
@@ -118,4 +145,33 @@ function analyseInput(string) {
     }
 
     return items;
+}
+
+schedule.scheduleJob('0 0 * * * *', saveBotState);
+function saveBotState() {
+    let copy = Object.assign(Object.create(Object.getPrototypeOf(botInformation)), botInformation);
+    copy.cleanUsers();
+
+    fs.writeFile('./output/state.json', JSON.stringify(copy), function (err) {
+        if (err) logger.log.error(err);
+        else logger.log.info('Saved bot state');
+    });
+}
+
+function getBotState() {
+    if (fs.existsSync('./output/state.json')) {
+        logger.log.info("Bot State File was found");
+        let rawdata = fs.readFileSync('./output/state.json');
+        let info = JSON.parse(rawdata);
+
+        botInformation = Object.assign(new BotInformation, info);
+        botInformation.parseObjects();
+
+        logger.log.info("Bot State File was loaded");
+        return botInformation;
+    } else {
+        logger.log.info("Bot State File wasn't found");
+        availableSchedules = ['check-registry'];
+        return new BotInformation(availableSchedules);
+    }
 }

@@ -1,6 +1,7 @@
 var moment = require('moment');
 var schedule = require('node-schedule');
 var fs = require('fs');
+var readline = require('readline');
 
 var commandsList = require('../json/commands.json');
 var fas = require('../modules/fas.js');
@@ -10,48 +11,57 @@ var logger = require('../modules/logger.js');
 let classes = require('./classes.js');
 let CommandInterface = classes.CommandInterface;
 
-const ChatInformation = classes.ChatInformation;
 const Tags = require('./tags.js');
+const ChatInformation = require('./user').ChatInformation;
 
-function start_function(tags, chatInformation) {
+// --------------- COMMAND FUNCTIONS ---------------
+
+function start_function(tags, user) {
     var opts = modelForOpts();
-    var message = 'Hello <b>' + chatInformation.msg.from.first_name + ' ' + chatInformation.msg.from.last_name + '</b>,\n';
-    bot.sendMessage(chatInformation.chatId, message, opts['normal']);
+    var message = 'Hello <b>' + user.getFirstName() + ' ' + user.getLastName() + '</b>,\n';
+    bot.sendMessage(user.getChatId(), message, opts['normal']);
 
     var message = 'This are all the available commands:\n'
     commandsList.available_commands.map(command => { 
         message += '<b>/' + command.tag + '</b>: ' + command.description + '\n'; })
-    bot.sendMessage(chatInformation.chatId, message, opts['normal']);
+    bot.sendMessage(user.getChatId(), message, opts['normal']);
 }
 
-async function fas_setup_function(tags, chatInformation) {
+async function fas_setup_function(tags, user) {
     var opts = modelForOpts();
-    await fas.setupConst();
-    bot.sendMessage(chatInformation.chatId, "Clean Setup Done", opts['normal']);
+    fas.setupConst(user.getFasFile()).then(function(info) {
+        user.setFasBaseDate(info[0]);
+        user.setFasClasses(info[1]);
+        user.setFasSchedule(info[2]);
+        bot.sendMessage(user.getChatId(), "Clean Setup Done", opts['normal']);
+    });
 }
 
-function fas_print_function(tags, chatInformation) {
+function fas_print_function(tags, user) {
     var opts = modelForOpts();
-    var message = "<b>Schedule Check-Registry:</b> " + schedule_check_registry_chatIds.includes(chatInformation.chatId);
-    bot.sendMessage(chatInformation.chatId, message, opts['normal']);
+
+    var message = "<b>Schedule Check-Registry:</b> " + user.getSchedules().includes('check-registry');
+    bot.sendMessage(user.getChatId(), message, opts['normal']);
+    var message = "<b>Fas File:</b> " + user.getFasFile();
+    bot.sendMessage(user.getChatId(), message, opts['normal']);
     
-    var messages = fas.printSchedule();
+    var messages = fas.printSchedule(user.getFasSchedule());
     for (message in messages)
-        bot.sendMessage(chatInformation.chatId, messages[message], opts['normal']);
+        bot.sendMessage(user.getChatId(), messages[message], opts['normal']);
 }
 
-function show_registry_function(tags, chatInformation) {
+function show_registry_function(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
 
-    fas.getRegistryDay(date).then(function(info) {
+    fas.getRegistryDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(info) {
         if (info.length == 0) {
-            bot.sendMessage(chatInformation.chatId, 'There was nothing to register that day!');
+            bot.sendMessage(user.getChatId(), 'There was nothing to register that day!');
             return;
         }
 
@@ -63,21 +73,21 @@ function show_registry_function(tags, chatInformation) {
             if (!['x', 'X', 'nao houve'].includes(current_activity.state)) perfect = false;
         }
 
-        if (perfect && !total) bot.sendMessage(chatInformation.chatId, '<b>You attended everything!</b>', opts['normal']);
-        else bot.sendMessage(chatInformation.chatId, message, opts['normal']);
+        if (perfect && !total) bot.sendMessage(user.getChatId(), '<b>You attended everything!</b>', opts['normal']);
+        else bot.sendMessage(user.getChatId(), message, opts['normal']);
     });
 }
 
-function show_tasks_function(tags, chatInformation) {
+function show_tasks_function(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         for (var class_index = 0; class_index < info.length; class_index++) {
             var perfect = true;
             current_class = info[class_index];
@@ -91,60 +101,60 @@ function show_tasks_function(tags, chatInformation) {
                 }
             }
 
-            if (!perfect) bot.sendMessage(chatInformation.chatId, message, opts['normal']);
+            if (!perfect) bot.sendMessage(user.getChatId(), message, opts['normal']);
         }
     });
 }
 
-function mark_registry_function(tags, chatInformation) {
+function mark_registry_function(tags, user) {
     let successMessage = 'Registry marked <b>successfully</b>!';
     let errorMessage = 'There was a problem marking the registry!';
-    changeValueRegistry(tags, chatInformation, successMessage, errorMessage);
+    changeValueRegistry(tags, user, successMessage, errorMessage);
 }
 
-function unmark_registry_function(tags, chatInformation) {
+function unmark_registry_function(tags, user) {
     let successMessage = 'Registry unmarked <b>successfully</b>!';
     let errorMessage = 'There was a problem unmarking the registry!';
-    changeValueRegistry(tags, chatInformation, successMessage, errorMessage);
+    changeValueRegistry(tags, user, successMessage, errorMessage);
 }
 
-function change_registry_function(tags, chatInformation) {
+function change_registry_function(tags, user) {
     let successMessage = 'Registry changed <b>successfully</b>!';
     let errorMessage = 'There was a problem changing the registry!';
-    changeValueRegistry(tags, chatInformation, successMessage, errorMessage);
+    changeValueRegistry(tags, user, successMessage, errorMessage);
 }
 
-function mark_task_function(tags, chatInformation) {
+function mark_task_function(tags, user) {
     let successMessage = 'Task marked <b>successfully</b>!';
     let errorMessage = 'There was a problem marking the task!';
-    changeValueTask(tags, chatInformation, successMessage, errorMessage);
+    changeValueTask(tags, user, successMessage, errorMessage);
 }
 
-function unmark_task_function(tags, chatInformation) {
+function unmark_task_function(tags, user) {
     let successMessage = 'Task unmarked <b>successfully</b>!';
     let errorMessage = 'There was a problem unmarking the task!';
-    changeValueTask(tags, chatInformation, successMessage, errorMessage);
+    changeValueTask(tags, user, successMessage, errorMessage);
 }
 
-function change_task_function(tags, chatInformation) {
+function change_task_function(tags, user) {
     let successMessage = 'Task changed <b>successfully</b>!';
     let errorMessage = 'There was a problem changing the task!';
-    changeValueTask(tags, chatInformation, successMessage, errorMessage);
+    changeValueTask(tags, user, successMessage, errorMessage);
 }
 
-function add_task_function(tags, chatInformation) {
+function add_task_function(tags, user) {
     var opts = modelForOpts();
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
     let taskNameTag = tags.find(element => element.getName() == 'new_task_name');
     let valueTag = tags.find(element => element.getName() == 'value');
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
         var class_item = info[class_index];
 
@@ -153,30 +163,30 @@ function add_task_function(tags, chatInformation) {
             task_index = class_item.tasks.length
 
         if (task_index >= 11) {
-            bot.sendMessage(chatInformation.chatId, 'There is no space for more tasks in that class!', opts['normal']);
+            bot.sendMessage(user.getChatId(), 'There is no space for more tasks in that class!', opts['normal']);
         } else {
-            fas.addTask(date, class_index, task_index, taskNameTag.getValue(), valueTag.getValue()).then(function(value) {
-                if (value == -1) bot.sendMessage(chatInformation.chatId, 'There was a problem adding the task!', opts['normal']);
-                else bot.sendMessage(chatInformation.chatId, 'Task added <b>successfully</b>!', opts['normal']);
+            fas.addTask(user.getFasFile(), user.getFasBaseDate(), date, class_index, task_index, taskNameTag.getValue(), valueTag.getValue()).then(function(value) {
+                if (value == -1) bot.sendMessage(user.getChatId(), 'There was a problem adding the task!', opts['normal']);
+                else bot.sendMessage(user.getChatId(), 'Task added <b>successfully</b>!', opts['normal']);
             });
         }
     });
 }
 
-function schedule_function(tags, chatInformation) {
+function schedule_function(tags, user) {
     var opts = modelForOpts();
     var message = 'This are all the available schedules:\n'
     commandsList.schedules.map(command => { 
         message += '<b>/schedule ' + command.tag + '</b>: ' + command.description + '\n'; })
-    bot.sendMessage(chatInformation.chatId, message, opts['normal']);
+    bot.sendMessage(user.getChatId(), message, opts['normal']);
 }
 
-function add_phrase_of_the_day_function(tags, chatInformation) {
+function add_phrase_of_the_day_function(tags, user) {
     var opts = modelForOpts();
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     let dateString = date.format('YYYY - MM - DD');
@@ -190,21 +200,66 @@ function add_phrase_of_the_day_function(tags, chatInformation) {
         if (err) logger.log.error(err);
         else {
             logger.log.info('Saved phrase of the day');
-            bot.sendMessage(chatInformation.chatId, "Phrase of the day saved!", opts['normal']);
+            bot.sendMessage(user.getChatId(), "Phrase of the day saved!", opts['normal']);
         }
     });
 
 }
 
-global.schedule_check_registry_chatIds = [];
-function schedule_check_registry_function(tags, chatInformation) {
+function schedule_check_registry_function(tags, user) {
     var opts = modelForOpts();
     
-    if (!schedule_check_registry_chatIds.includes(chatInformation.chatId)) {
-        schedule_check_registry_chatIds.push(chatInformation.chatId);
-        bot.sendMessage(chatInformation.chatId, "Schedule check_registry activated", opts['normal']);
+    if (botInformation.addUserToSchedule('check-registry', user)) {
+        user.addSchedule('check-registry');
+        bot.sendMessage(user.getChatId(), "Schedule check-registry activated", opts['normal']);
     } else {
-        bot.sendMessage(chatInformation.chatId, "Schedule check_registry already activated", opts['normal']);
+        bot.sendMessage(user.getChatId(), "Schedule check-registry already activated", opts['normal']);
+    }
+}
+
+function set_fas_function(tags, user) {
+    var opts = modelForOpts();
+
+    let valueTag = tags.find(element => element.getName() == 'value');
+    user.setFasFile(valueTag.getValue());
+    fas.setupConst(user.getFasFile()).then(function(info) {
+        user.setFasBaseDate(info[0]);
+        user.setFasClasses(info[1]);
+        user.setFasSchedule(info[2]);
+        bot.sendMessage(user.getChatId(), "Fas file set successfully", opts['normal']);
+    });
+}
+
+function get_fas_function(tags, user) {
+    var opts = modelForOpts();
+
+    const reader = readline.createInterface({
+        input: fs.createReadStream('./json/setupFas.html'),
+        output: process.stdout,
+        terminal: false
+    });
+
+    reader.on('line', (line) => {
+        bot.sendMessage(user.getChatId(), line, opts['normal']);
+    });
+}
+
+// --------------- VERIFY FUNCTIONS ---------------
+
+function command_fas_verify(tags, user) {
+    var opts = modelForOpts();
+
+    if (user.getFasFile() == undefined) {
+        chatInformation = user.getChatInformation();
+        if (chatInformation == undefined | chatInformation == null)
+            chatInformation = new ChatInformation(chatId, undefined, undefined);
+
+        bot.sendMessage(user.getChatId(), "Please set your FAS file first!", opts['normal']);
+        global.createCommandAndRun(SetFasCommand, chatInformation, undefined);
+        return false;
+
+    } else {
+        return true;
     }
 }
 
@@ -214,47 +269,63 @@ schedule.scheduleJob('0 50 * * * *', autoRegistry);
 
 // --------------- SCHEDULE FUNCTIONS ---------------
 function autoRegistry() {
-    var opts = modelForOpts();
-    fas.checkMarking().then(function(event) {
-        if (event == null) return;
+    let date = moment();
 
-        var message = 'Do you wish to mark ' + event['class'] + ' class?\n';
-        message += 'Room: ' + event['room'];
+    usersWithSchedule = botInformation.getUsersWithSchedule('check-registry');
+    usersWithSchedule.forEach(chatId => {
+        let user = botInformation.getUser(chatId);
 
-        for (index in schedule_check_registry_chatIds)
-            bot.sendMessage(schedule_check_registry_chatIds[index], message, opts['keyboard']);
+        fas.checkClassDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(class_day) {
+            if (!class_day) return;
 
-            let chatInformation = new ChatInformation(schedule_check_registry_chatIds[index], undefined, undefined);
-            let predefinedTags = [ new Tags.description_registry(event['class']) ];
-            global.createCommandAndRun(ChangeRegistryCommand, chatInformation, predefinedTags);
+            fas.checkMarking(user.getFasSchedule()).then(function(event) {
+                var opts = modelForOpts();
+                if (event == null) return;
+
+                var message = 'Do you wish to mark ' + event['class'] + ' class?\n';
+                message += 'Room: ' + event['room'];
+                let predefinedTags = [ new Tags.description_registry(event['class']) ];
+
+                bot.sendMessage(user.getChatId(), message, opts['keyboard']);
+                chatInformation = user.getChatInformation();
+                if (chatInformation == undefined | chatInformation == null)
+                    chatInformation = new ChatInformation(chatId, undefined, undefined);
+
+                global.createCommandAndRun(ChangeRegistryCommand, chatInformation, predefinedTags);
+            });
+        });
     });
 }
 
-class StartCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Start", start_function) } };
-class FasSetupCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Fas Setup", fas_setup_function) } };
-class FasPrintCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Fas Print", fas_print_function) } };
-class ShowRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Show Registry", show_registry_function) } };
-class ShowTasksCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Show Tasks", show_tasks_function) } };
-class ScheduleCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Schedule", schedule_function) } };
-class ScheduleCheckRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Schedule Check Registry", schedule_check_registry_function) } };
+class StartCommand extends CommandInterface { constructor(user) { super(user, "Start", undefined, start_function) } };
+class FasSetupCommand extends CommandInterface { constructor(user) { super(user, "Fas Setup", command_fas_verify, fas_setup_function) } };
+class FasPrintCommand extends CommandInterface { constructor(user) { super(user, "Fas Print", command_fas_verify, fas_print_function) } };
+class ShowRegistryCommand extends CommandInterface { constructor(user) { super(user, "Show Registry", command_fas_verify, show_registry_function) } };
+class ShowTasksCommand extends CommandInterface { constructor(user) { super(user, "Show Tasks", command_fas_verify, show_tasks_function) } };
+class ScheduleCommand extends CommandInterface { constructor(user) { super(user, "Schedule", undefined, schedule_function) } };
+class ScheduleCheckRegistryCommand extends CommandInterface { constructor(user) { super(user, "Schedule Check Registry", command_fas_verify, schedule_check_registry_function) } };
 
 function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.description_registry() ] };
-class MarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Registry", mark_registry_function, mark_registry_tags()) } };
+class MarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Marking Registry", command_fas_verify, mark_registry_function, mark_registry_tags()) } };
 function unmark_registry_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.description_registry() ] };
-class UnmarkRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Registry", unmark_registry_function, unmark_registry_tags()) } };
-function change_registry_tags() { return [ new Tags.description_registry(), new Tags.value() ] };
-class ChangeRegistryCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Changing Registry", change_registry_function, change_registry_tags()) } };
+class UnmarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Registry", command_fas_verify, unmark_registry_function, unmark_registry_tags()) } };
+function change_registry_tags() { return [ new Tags.description_registry(), new Tags.values_list(['x', 'não houve', '']), new Tags.value() ] };
+class ChangeRegistryCommand extends CommandInterface { constructor(user) { super(user, "Changing Registry", command_fas_verify, change_registry_function, change_registry_tags()) } };
 function mark_task_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.class_description(), new Tags.task_description() ] };
-class MarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Marking Tasks", mark_task_function, mark_task_tags()) } };
+class MarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Marking Tasks", command_fas_verify, mark_task_function, mark_task_tags()) } };
 function unmark_task_tags() { return [ new Tags.value(''), new Tags.blacklist(['']), new Tags.class_description(), new Tags.task_description() ] };
-class UnmarkTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Unmarking Tasks", unmark_task_function, unmark_task_tags()) } };
-function change_task_tags() { return [ new Tags.class_description(), new Tags.task_description(), new Tags.value() ] };
-class ChangeTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Changing Tasks", change_task_function, change_task_tags()) } };
-function new_task_tags() { return [ new Tags.class_description(), new Tags.new_task_name(), new Tags.value() ] };
-class AddTaskCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Adding Task", add_task_function, new_task_tags()) } };
+class UnmarkTaskCommand extends CommandInterface { constructor(user) { super(user, "Unmarking Tasks", command_fas_verify, unmark_task_function, unmark_task_tags()) } };
+function change_task_tags() { return [ new Tags.class_description(), new Tags.task_description(), new Tags.values_list(['x', '']), new Tags.value() ] };
+class ChangeTaskCommand extends CommandInterface { constructor(user) { super(user, "Changing Tasks", command_fas_verify, change_task_function, change_task_tags()) } };
+function new_task_tags() { return [ new Tags.class_description(), new Tags.new_task_name(), new Tags.values_list(['x', '']), new Tags.value() ] };
+class AddTaskCommand extends CommandInterface { constructor(user) { super(user, "Adding Task", command_fas_verify, add_task_function, new_task_tags()) } };
+
 
 function add_phrase_of_the_day_tags() { return [ new Tags.phrase() ] };
-class AddPhraseOfTheDayCommand extends CommandInterface { constructor(chatInformation) { super(chatInformation, "Adding Phrase Of The Day", add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
+class AddPhraseOfTheDayCommand extends CommandInterface { constructor(user) { super(user, "Adding Phrase Of The Day", undefined, add_phrase_of_the_day_function, add_phrase_of_the_day_tags()) } };
+function set_fas_tags() { return [ new Tags.value_string('What is the ID of your FAS file?'), new Tags.value() ] };
+class SetFasCommand extends CommandInterface { constructor(user) { super(user, "Set Fas File", undefined, set_fas_function, set_fas_tags()) } };
+class GetFasCommand extends CommandInterface { constructor(user) { super(user, "Get Fas File", undefined, get_fas_function, undefined) } };
 
 const commands = {
     StartCommand: StartCommand,
@@ -274,21 +345,23 @@ const commands = {
     AddTaskCommand: AddTaskCommand,
 
     AddPhraseOfTheDayCommand: AddPhraseOfTheDayCommand,
+    SetFasCommand: SetFasCommand,
+    GetFasCommand: GetFasCommand
 }
 
 module.exports = commands;
 
-function changeValueRegistry(tags, chatInformation, successMessage, errorMessage) {
+function changeValueRegistry(tags, user, successMessage, errorMessage) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let descriptionTag = tags.find(element => element.getName() == 'description_registry');
     let valueTag = tags.find(element => element.getName() == 'value');
 
-    fas.getRegistryDay(date).then(function(info) {
+    fas.getRegistryDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(info) {
         var indexes = []
         for (var event_index = 0; event_index < info.length; event_index++)
             if (info[event_index].description == descriptionTag.getValue())
@@ -297,34 +370,34 @@ function changeValueRegistry(tags, chatInformation, successMessage, errorMessage
         count = indexes.length;
         index = indexes[0];
     
-        fas.changeValueRegistry(date, index, count, valueTag.getValue()).then(function(value) {
-            if (value == -1) bot.sendMessage(chatInformation.chatId, errorMessage, opts['normal']);
-            else bot.sendMessage(chatInformation.chatId, successMessage, opts['normal']);
+        fas.changeValueRegistry(user.getFasFile(), user.getFasBaseDate(), date, index, count, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(user.getChatId(), errorMessage, opts['normal']);
+            else bot.sendMessage(user.getChatId(), successMessage, opts['normal']);
         });
     });
 }
 
-function changeValueTask(tags, chatInformation, successMessage, errorMessage) {
+function changeValueTask(tags, user, successMessage, errorMessage) {
     var opts = modelForOpts();
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
     let taskDescriptionTag = tags.find(element => element.getName() == 'task_description');
     let valueTag = tags.find(element => element.getName() == 'value');
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         var class_index = info.findIndex(item => item.name == classDescriptionTag.getValue());
 
         var class_item = info[class_index];
         var task_index = class_item.tasks.findIndex(item => item.name == taskDescriptionTag.getValue());
         
-        fas.changeValueTask(date, class_index, task_index, valueTag.getValue()).then(function(value) {
-            if (value == -1) bot.sendMessage(chatInformation.chatId, errorMessage, opts['normal']);
-            else bot.sendMessage(chatInformation.chatId, successMessage, opts['normal']);
+        fas.changeValueTask(user.getFasFile(), user.getFasBaseDate(), date, class_index, task_index, valueTag.getValue()).then(function(value) {
+            if (value == -1) bot.sendMessage(user.getChatId(), errorMessage, opts['normal']);
+            else bot.sendMessage(user.getChatId(), successMessage, opts['normal']);
         });
     });
 }

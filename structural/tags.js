@@ -6,11 +6,11 @@ let TagInterface = classes.TagInterface;
 var fas = require('../modules/fas.js');
 var date_module = require('../modules/date.js');
 
-function description_registry_callback(tags, chatInformation) {
+function description_registry_callback(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -18,7 +18,7 @@ function description_registry_callback(tags, chatInformation) {
     else blacklist = [];
 
     var different_events = []
-    fas.getRegistryDay(date).then(function(info) {
+    fas.getRegistryDay(user.getFasFile(), user.getFasBaseDate(), date).then(function(info) {
         info.map(event_item => {
             if (!different_events.includes(event_item.description) && !blacklist.includes(event_item.state)) {
                 different_events.push(event_item.description);
@@ -28,36 +28,36 @@ function description_registry_callback(tags, chatInformation) {
         });
 
         if (different_events.length == 0) {
-            bot.sendMessage(chatInformation.chatId, 'No events available for that change!', opts['normal']);
+            bot.sendMessage(user.getChatId(), 'No events available for that change!', opts['normal']);
             return true;
         } else {
-            bot.sendMessage(chatInformation.chatId, 'Choose which event:', opts['keyboard']);
+            bot.sendMessage(user.getChatId(), 'Choose which event:', opts['keyboard']);
             return false;
         }    
     });
 }
 
-function class_description_callback(tags, chatInformation) {
+function class_description_callback(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         info.map(class_item => {
             opts['keyboard'].reply_markup.keyboard.push([class_item.name]);
         });
 
-        bot.sendMessage(chatInformation.chatId, 'Choose which class:', opts['keyboard']);
+        bot.sendMessage(user.getChatId(), 'Choose which class:', opts['keyboard']);
     });
 }
 
-function task_description_callback(tags, chatInformation) {
+function task_description_callback(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(chatInformation.chatId, now, dateTag.getValue());
+    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -67,7 +67,7 @@ function task_description_callback(tags, chatInformation) {
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
     let classDescription = classDescriptionTag.getValue();
 
-    fas.getTasks(date).then(function(info) {
+    fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
         var class_item = info.find(item => item.name == classDescription);
 
         class_item.tasks.map(task => {
@@ -76,33 +76,49 @@ function task_description_callback(tags, chatInformation) {
         });
 
         if (opts['keyboard'].reply_markup.keyboard.length == 0) {
-            bot.sendMessage(chatInformation.chatId, 'No tasks available for that change!', opts['normal']);
+            bot.sendMessage(user.getChatId(), 'No tasks available for that change!', opts['normal']);
             return true;
         } else {
-            bot.sendMessage(chatInformation.chatId, 'Choose which task:', opts['keyboard']);
+            bot.sendMessage(user.getChatId(), 'Choose which task:', opts['keyboard']);
             return false;
         }   
     });
 }
 
-function phrase_callback(tags, chatInformation) {
+function phrase_callback(tags, user) {
     var opts = modelForOpts();
 
-    bot.sendMessage(chatInformation.chatId, "What is the phrase?", opts['normal']);
+    bot.sendMessage(user.getChatId(), "What is the phrase?", opts['normal']);
 }
 
-function value_callback(tags, chatInformation) {
+function value_callback(tags, user) {
     var opts = modelForOpts();
+    var query = "What value do you wish to place in the event?";
+    let valuesListTag = tags.find(element => element.getName() == 'values_list');
+    let valueStringTag = tags.find(element => element.getName() == 'value_string');
 
-    bot.sendMessage(chatInformation.chatId, "What value do you wish to place in the event?", opts['normal']);
+    if (valueStringTag != undefined) query = valueStringTag.getValue();
+
+    if (valuesListTag != undefined && valuesListTag.getValue() != undefined) {
+        valuesListTag.getValue().map(valueItem => {
+            opts['keyboard'].reply_markup.keyboard.push([valueItem]);
+        });
+
+        bot.sendMessage(user.getChatId(), query, opts['keyboard']);
+    } else {
+        bot.sendMessage(user.getChatId(), query, opts['normal']);
+    }
 }
 
-function new_task_name_callback(tags, chatInformation) {
+function new_task_name_callback(tags, user) {
     var opts = modelForOpts();
-    bot.sendMessage(chatInformation.chatId, "How do you wish to name the task?", opts['normal']);
+    bot.sendMessage(user.getChatId(), "How do you wish to name the task?", opts['normal']);
 }
 
 class TotalTag extends TagInterface { constructor() { super("total", undefined, undefined, true) } };
+
+class ValuesListTag extends TagInterface { constructor(value) { super("values_list", undefined, undefined, value) } };
+class ValueStringTag extends TagInterface { constructor(value) { super("value_string", undefined, undefined, value) } };
 
 class DateTag extends TagInterface { constructor(value) { super("date", undefined, undefined, value) } };
 class ValueTag extends TagInterface { constructor(value) { super("value", value_callback, undefined, value) } };
@@ -117,6 +133,8 @@ const commands = {
     'date': DateTag,
     'total': TotalTag,
     'value': ValueTag,
+    'values_list': ValuesListTag,
+    'value_string': ValueStringTag,
     'blacklist': BlacklistTag,
     'description_registry': DescriptionRegistryTag,
     'class_description': ClassDescriptionTag,
