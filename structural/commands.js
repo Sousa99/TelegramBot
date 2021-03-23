@@ -5,7 +5,7 @@ var readline = require('readline');
 
 var commandsList = require('../json/commands.json');
 var fas = require('../modules/fas.js');
-var date_module = require('../modules/date.js');
+var time_module = require('../modules/time.js');
 var logger = require('../modules/logger.js');
 
 let classes = require('./classes.js');
@@ -54,7 +54,7 @@ function show_registry_function(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
@@ -82,7 +82,7 @@ function show_tasks_function(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
@@ -147,7 +147,7 @@ function add_task_function(tags, user) {
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
@@ -186,7 +186,7 @@ function add_phrase_of_the_day_function(tags, user) {
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     let dateString = date.format('YYYY - MM - DD');
@@ -355,7 +355,7 @@ function changeValueRegistry(tags, user, successMessage, errorMessage) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let descriptionTag = tags.find(element => element.getName() == 'description_registry');
@@ -382,7 +382,7 @@ function changeValueTask(tags, user, successMessage, errorMessage) {
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');

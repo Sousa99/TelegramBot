@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "feed-reader": "^1.1.6",
     "googleapis": "^60.0.1",
     "moment": "^2.29.0",
     "node-schedule": "^1.3.2",

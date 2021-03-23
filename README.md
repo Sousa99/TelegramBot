@@ -25,9 +25,10 @@ This project runs through *node.js* and easily allows the user to code in new **
 │   ├── google_keys.json
 │   └── tokens.json
 ├── modules
-│   ├── date.js
 │   ├── fas.js
-│   └── logger.js
+│   ├── logger.js
+│   ├── rss-parser.js
+│   └── time.js
 ├── output
 │   └── phrases.txt
 ├── package-lock.json
