@@ -33,6 +33,7 @@ async function fas_setup_function(tags, user) {
         user.setFasBaseDate(info[0]);
         user.setFasClasses(info[1]);
         user.setFasSchedule(info[2]);
+        user.setRSSChannels(info[3]);
         bot.sendMessage(user.getChatId(), "Clean Setup Done", opts['normal']);
     });
 }

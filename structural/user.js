@@ -23,6 +23,8 @@ class User {
         this.fasBaseDate = undefined;
         this.fasClasses = undefined;
         this.fasSchedule = undefined;
+        this.rssChannels = undefined
+        this.rssGuids = [];
         this.lastChatInformation = undefined;
     }
 
@@ -34,14 +36,20 @@ class User {
     getFasBaseDate() { return this.fasBaseDate; }
     getFasClasses() { return this.fasClasses; }
     getFasSchedule() { return this.fasSchedule; }
+    getRSSChannels() { return this.rssChannels; }
+    getRSSGuids() { return this.rssGuids; }
     getSchedules() { return this.schedules; }
     getFasFile() { return this.fasFile; }
     getChatInformation() { return this.lastChatInformation; }
+
     addSchedule(newSchedule) { this.schedules.push(newSchedule); }
+    addRSSGuid(newGuid) { this.rssGuids.push(newGuid); }
+
     setFasFile(fasFile) { this.fasFile = fasFile; }
     setFasBaseDate(base_date) { this.fasBaseDate = base_date; }
     setFasClasses(classes) { this.fasClasses = classes; }
     setFasSchedule(schedule) { this.fasSchedule = schedule; }
+    setRSSChannels(channels) { this.rssChannels = channels; }
     setChatInformation(chatInformation) { this.lastChatInformation = chatInformation; }
 
     parseObjects() {

@@ -28,6 +28,7 @@ async function setupConst(fas_id) {
     base_date = null;
     classes = [];
     schedule = {"Monday": {}, "Tuesday": {}, "Wednesday": {}, "Thursday": {}, "Friday": {}, "Saturday": {}, "Sunday": {}};
+    rss_channels = [];
 
     const promise = new Promise((resolve, reject) => {
         gsGet(fas_id, 'REGISTO!D2').then(function(data) {
@@ -37,6 +38,12 @@ async function setupConst(fas_id) {
         gsGet(fas_id, 'TAREFAS!B3:O3').then(function(data) {
             var classes_name = data.data.values[0].filter(item => item.length != '');
             for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
+        });
+
+        gsGet(fas_id, 'CONFIG!G3:G72').then(function(data) {
+            data.data.values.forEach(values_line => {
+                values_line.forEach(value => rss_channels.push(value))
+            });
         });
     
         gsGet(fas_id, 'HORÁRIO!B2:H2').then(function(data) {
@@ -69,7 +76,7 @@ async function setupConst(fas_id) {
                         }
                     }
                     
-                    info = [base_date, classes, schedule]
+                    info = [base_date, classes, schedule, rss_channels]
                     resolve(info);
                 });
             }); 
