@@ -5,8 +5,9 @@ var readline = require('readline');
 
 var commandsList = require('../json/commands.json');
 var fas = require('../modules/fas.js');
-var date_module = require('../modules/date.js');
+var time_module = require('../modules/time.js');
 var logger = require('../modules/logger.js');
+var rss_parser = require('../modules/rss-parser.js')
 
 let classes = require('./classes.js');
 let CommandInterface = classes.CommandInterface;
@@ -33,6 +34,7 @@ async function fas_setup_function(tags, user) {
         user.setFasBaseDate(info[0]);
         user.setFasClasses(info[1]);
         user.setFasSchedule(info[2]);
+        user.setRSSChannels(info[3]);
         bot.sendMessage(user.getChatId(), "Clean Setup Done", opts['normal']);
     });
 }
@@ -54,7 +56,7 @@ function show_registry_function(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
@@ -82,7 +84,7 @@ function show_tasks_function(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     var total = tags.find(element => element.getName() == 'total') != undefined;
@@ -147,7 +149,7 @@ function add_task_function(tags, user) {
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');
@@ -186,7 +188,7 @@ function add_phrase_of_the_day_function(tags, user) {
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
     
     let dateString = date.format('YYYY - MM - DD');
@@ -214,6 +216,17 @@ function schedule_check_registry_function(tags, user) {
         bot.sendMessage(user.getChatId(), "Schedule check-registry activated", opts['normal']);
     } else {
         bot.sendMessage(user.getChatId(), "Schedule check-registry already activated", opts['normal']);
+    }
+}
+
+function schedule_rss_channels_function(tags, user) {
+    var opts = modelForOpts();
+    
+    if (botInformation.addUserToSchedule('rss-channels', user)) {
+        user.addSchedule('rss-channels');
+        bot.sendMessage(user.getChatId(), "Schedule rss-channels activated", opts['normal']);
+    } else {
+        bot.sendMessage(user.getChatId(), "Schedule rss-channels already activated", opts['normal']);
     }
 }
 
@@ -266,6 +279,7 @@ function command_fas_verify(tags, user) {
 // --------------- STARTING SCHEDULES ---------------
 schedule.scheduleJob('0 20 * * * *', autoRegistry);
 schedule.scheduleJob('0 50 * * * *', autoRegistry);
+schedule.scheduleJob('0 */5 * * * *', getRSSMessages);
 
 // --------------- SCHEDULE FUNCTIONS ---------------
 function autoRegistry() {
@@ -297,6 +311,36 @@ function autoRegistry() {
     });
 }
 
+function getRSSMessages() {
+
+    usersWithSchedule = botInformation.getUsersWithSchedule('rss-channels');
+    usersWithSchedule.forEach(chatId => {
+        let user = botInformation.getUser(chatId);
+        let rss_channels = user.getRSSChannels();
+        let previous_guids = user.getRSSGuids();
+
+        rss_channels.forEach((channel) => {
+
+            rss_parser.checkChannel(channel, previous_guids).then((rss_messages) => {
+
+                rss_messages.forEach((rss_message) => {
+    
+                    var opts = modelForOpts();
+                    user.addRSSGuid(rss_message.guid);
+    
+                    message = "<b>" + rss_message.channel + "</b>\n"
+                    message += rss_message.title + "\n"
+                    message += "--------------------------------\n"
+                    message += rss_message.timestamp.format("Do MMMM YYYY, HH:mm:ss") + "\n"
+                    message += rss_message.link
+    
+                    bot.sendMessage(user.getChatId(), message, opts['keyboard']);
+                });
+            });
+        });
+    });
+}
+
 class StartCommand extends CommandInterface { constructor(user) { super(user, "Start", undefined, start_function) } };
 class FasSetupCommand extends CommandInterface { constructor(user) { super(user, "Fas Setup", command_fas_verify, fas_setup_function) } };
 class FasPrintCommand extends CommandInterface { constructor(user) { super(user, "Fas Print", command_fas_verify, fas_print_function) } };
@@ -304,6 +348,7 @@ class ShowRegistryCommand extends CommandInterface { constructor(user) { super(u
 class ShowTasksCommand extends CommandInterface { constructor(user) { super(user, "Show Tasks", command_fas_verify, show_tasks_function) } };
 class ScheduleCommand extends CommandInterface { constructor(user) { super(user, "Schedule", undefined, schedule_function) } };
 class ScheduleCheckRegistryCommand extends CommandInterface { constructor(user) { super(user, "Schedule Check Registry", command_fas_verify, schedule_check_registry_function) } };
+class ScheduleRSSChannelsCommand extends CommandInterface { constructor(user) { super(user, "Schedule RSS Channels", command_fas_verify, schedule_rss_channels_function) } };
 
 function mark_registry_tags() { return [ new Tags.value('x'), new Tags.blacklist(['x', 'X', 'Done']), new Tags.description_registry() ] };
 class MarkRegistryCommand extends CommandInterface { constructor(user) { super(user, "Marking Registry", command_fas_verify, mark_registry_function, mark_registry_tags()) } };
@@ -335,6 +380,7 @@ const commands = {
     ShowTasksCommand: ShowTasksCommand,
     ScheduleCommand: ScheduleCommand,
     ScheduleCheckRegistryCommand: ScheduleCheckRegistryCommand,
+    ScheduleRSSChannelsCommand: ScheduleRSSChannelsCommand,
 
     MarkRegistryCommand: MarkRegistryCommand,
     UnmarkRegistryCommand: UnmarkRegistryCommand,
@@ -355,7 +401,7 @@ function changeValueRegistry(tags, user, successMessage, errorMessage) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let descriptionTag = tags.find(element => element.getName() == 'description_registry');
@@ -382,7 +428,7 @@ function changeValueTask(tags, user, successMessage, errorMessage) {
 
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let classDescriptionTag = tags.find(element => element.getName() == 'class_description');

@@ -52,7 +52,7 @@ var processDateTag = function(chatId, date, tagValue) {
     return date;
 }
 
-var processDateString = function(str, format) {
+var processTimeString = function(str, format) {
     var date = new moment(str, format);
     return date;
 }
@@ -62,5 +62,5 @@ var getDelta = function(date1, date2, time = 'days') {
 }
 
 exports.processDateTag = processDateTag;
-exports.processDateString = processDateString;
+exports.processTimeString = processTimeString;
 exports.getDelta = getDelta;

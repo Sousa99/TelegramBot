@@ -19,6 +19,7 @@
     ],
 
     "schedules": [
-        {"tag": "check-registry", "description": "Bot will ask you if you want to register class about to begin"}
+        {"tag": "check-registry", "description": "Bot will ask you if you want to register class about to begin"},
+        {"tag": "rss-channels", "description": "Bot will show you every 5 minutes new RSS messages on your channels"}
     ]
 }

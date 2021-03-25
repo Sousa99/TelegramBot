@@ -25,9 +25,10 @@ This project runs through *node.js* and easily allows the user to code in new **
 │   ├── google_keys.json
 │   └── tokens.json
 ├── modules
-│   ├── date.js
 │   ├── fas.js
-│   └── logger.js
+│   ├── logger.js
+│   ├── rss-parser.js
+│   └── time.js
 ├── output
 │   └── phrases.txt
 ├── package-lock.json
@@ -64,9 +65,10 @@ Name | Description | Correspondind Command
 
 There is also the possibility of adding schedules to the telegram bot. Schedules can be intreperted as an automated command.
 
-Name | Description | Shceduled Time | Command
+Name | Description | Scheduled Time | Command
 ---- | ----------- | -------------- | -------
 `schedule check-registry` | Bot will ask you if you want to register class about to begin | Every hour at minute `20` and `50` (ten minutes before all classes) | `ScheduleCheckRegistryCommand`
+`schedule rss-channels` | Bot will check for messages in RSS channels defineD in your FAS | Every 5 minutes | `ScheduleRSSChannelsCommand`
 
 ---
 
@@ -108,6 +110,7 @@ Command Class | Command Name | Needed Tags | Optional Tags
 `GetFasCommand` | Get Fas File | | 
 `ScheduleCommand` | Schedule | | 
 `ScheduleCheckRegistryCommand` | Schedule Check Registry | | 
+`ScheduleRSSChannelsCommand` | Schedule RSS Channels | | 
 
 It is important to note that when it comes to the `Non-Optional Tags`, this are parsed in the respective order. Since the parsing of a specific tag might need the prior parsing of another tag.
 

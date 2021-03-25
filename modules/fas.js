@@ -1,6 +1,6 @@
 // FAS FUNCTIONS - GOOGLE SHEETS
 var logger = require('./logger.js');
-var date_module = require('./date.js');
+var time_module = require('./time.js');
 var moment = require('moment');
 
 const {google} = require('googleapis');
@@ -28,15 +28,22 @@ async function setupConst(fas_id) {
     base_date = null;
     classes = [];
     schedule = {"Monday": {}, "Tuesday": {}, "Wednesday": {}, "Thursday": {}, "Friday": {}, "Saturday": {}, "Sunday": {}};
+    rss_channels = [];
 
     const promise = new Promise((resolve, reject) => {
         gsGet(fas_id, 'REGISTO!D2').then(function(data) {
-            base_date = date_module.processDateString(data.data.values[0], "DD-MMM-YYYY");
+            base_date = time_module.processTimeString(data.data.values[0], "DD-MMM-YYYY");
         });
     
         gsGet(fas_id, 'TAREFAS!B3:O3').then(function(data) {
             var classes_name = data.data.values[0].filter(item => item.length != '');
             for (index in classes_name) classes.push({name: classes_name[index], tasks: []});
+        });
+
+        gsGet(fas_id, 'CONFIG!G3:G72').then(function(data) {
+            data.data.values.forEach(values_line => {
+                values_line.forEach(value => rss_channels.push(value))
+            });
         });
     
         gsGet(fas_id, 'HORÁRIO!B2:H2').then(function(data) {
@@ -69,7 +76,7 @@ async function setupConst(fas_id) {
                         }
                     }
                     
-                    info = [base_date, classes, schedule]
+                    info = [base_date, classes, schedule, rss_channels]
                     resolve(info);
                 });
             }); 
@@ -120,7 +127,7 @@ async function gsPostAppend(fas_id, range, values) {
 }
 
 async function changeValueRegistry(fas_id, base_date, date, index, count, value) {
-    var delta_days = date_module.getDelta(date, base_date);
+    var delta_days = time_module.getDelta(date, base_date);
     
     var row = delta_days * 2 + 3;
     var letter = String.fromCharCode('F'.charCodeAt(0) + index);
@@ -136,7 +143,7 @@ async function changeValueRegistry(fas_id, base_date, date, index, count, value)
 }
 
 async function changeValueTask(fas_id, base_date, date, class_index, task_index, value) {
-    var delta_weeks = date_module.getDelta(date, base_date, 'weeks');
+    var delta_weeks = time_module.getDelta(date, base_date, 'weeks');
     
     var row = delta_weeks * 12 + 5 + task_index;
     var letter = String.fromCharCode('C'.charCodeAt(0) + 2 * class_index);
@@ -149,7 +156,7 @@ async function changeValueTask(fas_id, base_date, date, class_index, task_index,
 }
 
 async function addTask(fas_id, base_date, date, class_index, task_index, task, state) {
-    var delta_weeks = date_module.getDelta(date, base_date, 'weeks');
+    var delta_weeks = time_module.getDelta(date, base_date, 'weeks');
     
     var row = delta_weeks * 12 + 5 + task_index;
     var letter1 = String.fromCharCode('B'.charCodeAt(0) + 2 * class_index);
@@ -163,7 +170,7 @@ async function addTask(fas_id, base_date, date, class_index, task_index, task, s
 }
 
 var getRegistryDay = async function(fas_id, base_date, date) {
-    var delta_days = date_module.getDelta(date, base_date);
+    var delta_days = time_module.getDelta(date, base_date);
     var row = delta_days * 2 + 2;
     var range = 'REGISTO!F' + row.toString() + ':O' + (row+1).toString();
 
@@ -185,7 +192,7 @@ var getRegistryDay = async function(fas_id, base_date, date) {
 }
 
 var checkClassDay = async function(fas_id, base_date, date) {
-    var delta_days = date_module.getDelta(date, base_date);
+    var delta_days = time_module.getDelta(date, base_date);
     var row = delta_days * 2 + 2;
     var range = 'REGISTO!C' + row.toString();
 
@@ -195,7 +202,7 @@ var checkClassDay = async function(fas_id, base_date, date) {
 }
 
 var getTasks = async function(fas_id, base_date, classes, date) {
-    var delta_weeks = date_module.getDelta(date, base_date, 'weeks');;
+    var delta_weeks = time_module.getDelta(date, base_date, 'weeks');;
     
     var row = delta_weeks * 12 + 5;
     for (var index = 0; index < classes.length; index++) {

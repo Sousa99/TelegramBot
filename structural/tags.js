@@ -4,13 +4,13 @@ let classes = require('./classes.js');
 let TagInterface = classes.TagInterface;
 
 var fas = require('../modules/fas.js');
-var date_module = require('../modules/date.js');
+var time_module = require('../modules/time.js');
 
 function description_registry_callback(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
@@ -41,7 +41,7 @@ function class_description_callback(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     fas.getTasks(user.getFasFile(), user.getFasBaseDate(), user.getFasClasses(), date).then(function(info) {
@@ -57,7 +57,7 @@ function task_description_callback(tags, user) {
     var opts = modelForOpts();
     let now = moment();
     let dateTag = tags.find(element => element.getName() == 'date');
-    if (dateTag != undefined) date = date_module.processDateTag(user.getChatId(), now, dateTag.getValue());
+    if (dateTag != undefined) date = time_module.processDateTag(user.getChatId(), now, dateTag.getValue());
     else date = now;
 
     let blacklistTag = tags.find(element => element.getName() == 'blacklist');
