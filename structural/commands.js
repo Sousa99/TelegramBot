@@ -44,6 +44,8 @@ function fas_print_function(tags, user) {
 
     var message = "<b>Schedule Check-Registry:</b> " + user.getSchedules().includes('check-registry');
     bot.sendMessage(user.getChatId(), message, opts['normal']);
+    var message = "<b>Schedule RSS-Channels:</b> " + user.getSchedules().includes('rss-channels');
+    bot.sendMessage(user.getChatId(), message, opts['normal']);
     var message = "<b>Fas File:</b> " + user.getFasFile();
     bot.sendMessage(user.getChatId(), message, opts['normal']);
     
