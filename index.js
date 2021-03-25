@@ -78,6 +78,7 @@ bot.onText(/\/show_registry(.*)/, function(msg, match) { createCommandAndRun(Com
 bot.onText(/\/show_tasks(.*)/, function(msg, match) { createCommandAndRun(Commands.ShowTasksCommand, new ChatInformation(msg.chat.id, msg, match)) });
 bot.onText(/\/schedule$/, function(msg) { createCommandAndRun(Commands.ScheduleCommand, new ChatInformation(msg.chat.id, msg, undefined)) });
 bot.onText(/\/schedule check-registry/, function(msg) { createCommandAndRun(Commands.ScheduleCheckRegistryCommand, new ChatInformation(msg.chat.id, msg, undefined)) });
+bot.onText(/\/schedule rss-channels/, function(msg) { createCommandAndRun(Commands.ScheduleRSSChannelsCommand, new ChatInformation(msg.chat.id, msg, undefined)) });
 
 bot.onText(/\/mark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.MarkRegistryCommand, new ChatInformation(msg.chat.id, msg, match)) });
 bot.onText(/\/unmark_registry(.*)/, function(msg, match) { createCommandAndRun(Commands.UnmarkRegistryCommand, new ChatInformation(msg.chat.id, msg, match)) });

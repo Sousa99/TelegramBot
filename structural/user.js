@@ -77,6 +77,8 @@ class BotInformation {
 
     getUsersWithSchedule(scheduleName) { return this.schedules[scheduleName]; }
     addUserToSchedule(scheduleName, user) {
+        if (!this.schedules.hasOwnProperty(scheduleName)) { this.schedules[scheduleName] = []; }
+
         if (this.schedules[scheduleName].includes(user.getChatId())) { return 0; }
         else { this.schedules[scheduleName].push(user.getChatId()); return 1; }
     }

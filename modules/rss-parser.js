@@ -1,15 +1,14 @@
 var logger = require('./logger.js');
-var parser = require('rss-parser');
+var Parser = require('rss-parser');
 var time_module = require('./time.js');
 
 var parser = new Parser();
 
 async function checkChannel(channelUrl, previous_guids) {
-    messages = []
-    
-    parser.parseURL(channelUrl).then((feed) => {
+    var messages = []
 
-        feed.items.forEach(element => {
+    await parser.parseURL(channelUrl).then((feed) => {
+        feed.items.forEach(async element => {
 
             if (previous_guids.some((guid) => guid == element.guid)) {
                 return
@@ -24,15 +23,15 @@ async function checkChannel(channelUrl, previous_guids) {
                 link: element.link,
                 guid: element.guid
             }
-
+            
             messages.push(new_message)
         });
 
     }).catch((err) => {
         logger.log.error('RSS Parser: ', err);
-    }).finally(() => {
-        console.log(messages)
     });
+
+    return messages;
 }
 
 exports.checkChannel = checkChannel;
