@@ -4,7 +4,7 @@ var time_module = require('./time.js');
 var moment = require('moment');
 
 const {google} = require('googleapis');
-const google_keys = require('../json/google_keys.json')
+const google_keys = require('../../json/google_keys.json')
 
 const client = new google.auth.JWT(
     google_keys.client_email,

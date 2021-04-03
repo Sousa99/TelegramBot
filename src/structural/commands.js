@@ -3,7 +3,7 @@ var schedule = require('node-schedule');
 var fs = require('fs');
 var readline = require('readline');
 
-var commandsList = require('../json/commands.json');
+var commandsList = require('../../json/commands.json');
 var fas = require('../modules/fas.js');
 var time_module = require('../modules/time.js');
 var logger = require('../modules/logger.js');
@@ -200,7 +200,7 @@ function add_phrase_of_the_day_function(tags, user) {
 
     let string = '{ \"day\": \"' + dateString + '\", \"time\": \"' + momentString + '\", \"phrase\": \"' + phrase + '\"},\n';
 
-    fs.appendFile('./output/phrases.txt', string, function (err) {
+    fs.appendFile('../output/phrases.txt', string, function (err) {
         if (err) logger.log.error(err);
         else {
             logger.log.info('Saved phrase of the day');
@@ -249,7 +249,7 @@ function get_fas_function(tags, user) {
     var opts = modelForOpts();
 
     const reader = readline.createInterface({
-        input: fs.createReadStream('./json/setupFas.html'),
+        input: fs.createReadStream('../json/setupFas.html'),
         output: process.stdout,
         terminal: false
     });

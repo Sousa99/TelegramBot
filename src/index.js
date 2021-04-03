@@ -4,7 +4,7 @@ var schedule = require('node-schedule');
 var fs = require('fs');
 
 var TelegramBot = require('node-telegram-bot-api');
-var tokens = require('./json/tokens.json');
+var tokens = require('../json/tokens.json');
 
 let telegramToken = tokens['telegram'];
 const isDebugEnvFlag = process.env.NODE_ENV === 'debug';
@@ -153,16 +153,16 @@ function saveBotState() {
     let copy = Object.assign(Object.create(Object.getPrototypeOf(botInformation)), botInformation);
     copy.cleanUsers();
 
-    fs.writeFile('./output/state.json', JSON.stringify(copy), function (err) {
+    fs.writeFile('../output/state.json', JSON.stringify(copy), function (err) {
         if (err) logger.log.error(err);
         else logger.log.info('Saved bot state');
     });
 }
 
 function getBotState() {
-    if (fs.existsSync('./output/state.json')) {
+    if (fs.existsSync('../output/state.json')) {
         logger.log.info("Bot State File was found");
-        let rawdata = fs.readFileSync('./output/state.json');
+        let rawdata = fs.readFileSync('../output/state.json');
         let info = JSON.parse(rawdata);
 
         botInformation = Object.assign(new BotInformation, info);

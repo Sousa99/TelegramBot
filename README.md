@@ -17,26 +17,33 @@ This project runs through *node.js* and easily allows the user to code in new **
 ## **File System**
 [Back to the top](#telegram-bot---sousas-personal-assistant)
 ```
+
 .
 ├── README.md
-├── index.js
 ├── json
-│   ├── commands.json
-│   ├── google_keys.json
-│   └── tokens.json
-├── modules
-│   ├── fas.js
-│   ├── logger.js
-│   ├── rss-parser.js
-│   └── time.js
+│   ├── commands.json
+│   ├── google_keys.json
+│   ├── google_keys.json.example
+│   ├── setupFas.html
+│   ├── tokens.json
+│   └── tokens.json.example
 ├── output
-│   └── phrases.txt
-├── package-lock.json
-├── package.json
-└── structural
-    ├── classes.js
-    ├── commands.js
-    └── tags.js
+│   ├── phrases.txt
+│   └── state.json
+└── src
+    ├── index.js
+    ├── modules
+    │   ├── fas.js
+    │   ├── logger.js
+    │   ├── rss-parser.js
+    │   └── time.js
+    ├── package-lock.json
+    ├── package.json
+    └── structural
+        ├── classes.js
+        ├── commands.js
+        ├── tags.js
+        └── user.js
 ```
 
 ---
