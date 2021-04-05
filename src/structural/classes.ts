@@ -1,7 +1,13 @@
-var logger = require('../modules/logger.js');
+import * as logger from '../modules/logger';
+import { User } from './user';
 
-class TagInterface {
-    constructor(name, callback, verifyCallback, value) {
+export class TagInterface {
+    name: string;
+    callback: null | ((tags: TagInterface[], user: User) => void);
+    verifyCallback: null | ((tags: TagInterface[], user: User) => void);
+    value: string | string[] | undefined;
+
+    constructor(name: string, callback: null | ((tags: TagInterface[], user: User) => void), verifyCallback: null | ((tags: TagInterface[], user: User) => void), value: string | string[] | undefined) {
         this.name = name;
         this.callback = callback;
         this.verifyCallback = verifyCallback;
@@ -19,7 +25,7 @@ class TagInterface {
         return this.callback != undefined;
     }
 
-    setValue(value) {
+    setValue(value: string | string[]) {
         this.value = value;
     }
 
@@ -32,15 +38,16 @@ class TagInterface {
         return string;
     }
 
-    run(tags, user) {
+    run(tags: TagInterface[], user: User) {
         logger.log.info('Setting up tag ' + this.name);
-        return this.callback(tags, user);
+        if (this.callback != undefined) return this.callback(tags, user);
+        return true;
     }
 
-    async verify(tags, user) {
+    async verify(tags: TagInterface[], user: User) : Promise<boolean> {
         logger.log.info('Verifying tag ' + this.name);
         if (this.verifyCallback != undefined) {
-            valid = this.verify(tags, user);
+            let valid = this.verify(tags, user);
             return valid;
         }
 
@@ -48,8 +55,15 @@ class TagInterface {
     }
 }
 
-class CommandInterface {
-    constructor(user, name, verify, callback, tagsList = []) {
+export class CommandInterface {
+    user: User;
+    name: string;
+    callback: (tags: TagInterface[], user: User) => void;
+    verify: null | ((tags: TagInterface[], user: User) => boolean);
+    tags: TagInterface[];
+    activeTag: TagInterface | undefined;
+
+    constructor(user: User, name: string, verify: null | ((tags: TagInterface[], user: User) => boolean), callback: (tags: TagInterface[], user: User) => void, tagsList: TagInterface[] = []) {
         this.user = user;
         this.name = name;
         this.verify = verify;
@@ -58,13 +72,13 @@ class CommandInterface {
         this.activeTag = undefined;
     }
 
-    setTag(Tag) {
+    setTag(Tag: TagInterface) {
         var existingTag = this.tags.find(element => element.getName() == Tag.getName());
-        if (existingTag != undefined) existingTag.setValue(Tag.getValue());
+        if (existingTag != undefined) existingTag.setValue(Tag.getValue() as string | string[]);
         else this.tags.push(Tag);
     }
 
-    getTag(name) {
+    getTag(name: string) {
         let tag = this.tags.find(element => element.getName() == name);
         return tag;
     }
@@ -108,9 +122,4 @@ class CommandInterface {
         this.callback(this.tags, this.user);
         return true;
     }
-}
-
-module.exports = {
-    TagInterface: TagInterface,
-    CommandInterface: CommandInterface
 }
