@@ -265,12 +265,15 @@ function schedule_rss_channels_function(tags: TagInterface[], user: User) {
 function set_fas_function(tags: TagInterface[], user: User) {
     var opts = global.modelForOpts();
 
-    let fas_file = user.getFasFile();
     let valueTag = tags.find(element => element.getName() == 'value');
-    if (fas_file == undefined || valueTag == undefined) return;
-
+    if (valueTag == undefined) return;
+    
     let valueValue = valueTag.getValue();
+    
     user.setFasFile(valueValue as string);
+    let fas_file = user.getFasFile();
+    if (fas_file == undefined) return;
+
     fas.setupConst(fas_file).then(function(info) {
         user.setFasBaseDate(info.base_date);
         user.setFasClasses(info.classes);

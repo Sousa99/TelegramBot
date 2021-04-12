@@ -273,11 +273,11 @@ export function printSchedule(schedule: schedule_type) : string[] {
 
         var newDay = "<b>" + day + "</b>\n";
         let times: string[] = [];
-        for (let key in schedule.keys()) times.push(key)
-        times = times.sort()
-        
+        for (let key of schedule_day.keys()) times.push(key);
+        times = times.sort();
+
         var lastClass = '';
-        for (let time in times) {
+        for (let time of times) {
 
             let event : event_type | undefined = schedule_day.get(time);
             if (event != undefined && lastClass != event['class']) {

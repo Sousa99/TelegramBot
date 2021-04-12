@@ -54,7 +54,7 @@ export function processDateTag(chatId: number, date: moment.Moment, tagValue: st
             date = moment(tagValue, moment.ISO_8601);
             if (date.isValid()) return;
 
-            let return_value : moment.Moment | undefined = processRelativeKeywords(date, tagValue);
+            let return_value : moment.Moment | undefined = processRelativeKeywords(createNowMoment(), tagValue);
             if (moment.isMoment(return_value)) date = return_value
             else {
                 global.bot.sendMessage(chatId, 'Date could not be parsed, showing <b>Today</b>!', opts['normal']);

@@ -74,7 +74,7 @@ export class User {
     setChatInformation(chatInformation: ChatInformation | undefined) { this.lastChatInformation = chatInformation; }
 
     parseObjects() {
-        this.lastChatInformation = Object.assign(ChatInformation, this.lastChatInformation);
+        this.lastChatInformation = Object.assign(new ChatInformation(0, null, null), this.lastChatInformation);
         this.lastChatInformation.parseObjects();
     }
 }
@@ -118,7 +118,7 @@ export class BotInformation {
 
     cleanUsers() { this.users.forEach(x => x.setChatInformation(undefined)); }
     parseObjects() {
-        this.users = this.users.map(x => Object.assign(User, x));
+        this.users = this.users.map(x => Object.assign(new User(0, "MockUp User", undefined), x));
         this.users.forEach(x => x.parseObjects());
     }
 }
