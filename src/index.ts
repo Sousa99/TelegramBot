@@ -3,6 +3,7 @@ import * as logger from './modules/logger';
 import * as schedule from 'node-schedule';
 import * as fs from 'fs';
 import TelegramBot = require('node-telegram-bot-api');
+import { deserialize, serialize } from 'typescript-json-serializer';
 
 let tokens = require('../json/tokens.json');
 let telegramToken = tokens['telegram'];
@@ -217,10 +218,9 @@ function analyseInput(string: string, chatId: number) : tag[] | undefined {
 
 schedule.scheduleJob('0 0 * * * *', saveBotState);
 function saveBotState() : void {
-    let copy = Object.assign(Object.create(Object.getPrototypeOf(BotInformation)), global.botInformation);
-    copy.cleanUsers();
+    const data = serialize(global.botInformation);
 
-    fs.writeFile('../output/state.json', JSON.stringify(copy), function (err) {
+    fs.writeFile('../output/state.json', JSON.stringify(data, null, 4), function (err) {
         if (err) logger.log.error(err);
         else logger.log.info('Saved bot state');
     });
@@ -230,17 +230,14 @@ function getBotState() : BotInformation {
     if (fs.existsSync('../output/state.json')) {
         logger.log.info("Bot State File was found");
         let rawdata = fs.readFileSync('../output/state.json', 'utf8');
-        let info = JSON.parse(rawdata);
-
-        let botInformation = Object.assign(new BotInformation, info);
-        botInformation.parseObjects();
+        let data = JSON.parse(rawdata);
+        let botInformation = deserialize<BotInformation>(data, BotInformation);
 
         logger.log.info("Bot State File was loaded");
         return botInformation;
 
     } else {
         logger.log.info("Bot State File wasn't found");
-        let availableSchedules = ['check-registry'];
-        return new BotInformation(availableSchedules);
+        return new BotInformation([]);
     }
 }

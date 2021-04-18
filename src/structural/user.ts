@@ -1,6 +1,8 @@
 import moment = require('moment');
-import { class_type, schedule_type } from '../modules/fas';
 import TelegramBot = require('node-telegram-bot-api');
+import { Serializable, JsonProperty } from 'typescript-json-serializer';
+
+import { class_type, schedule_type, event_type } from '../modules/fas';
 import { MockUpCommand } from './commands';
 
 export class ChatInformation {
@@ -17,21 +19,57 @@ export class ChatInformation {
     getChatId() { return this.chatId; }
     getMsg() { return this.msg; }
     getMatch() { return this.match; }
-
-    parseObjects() {}
 }
 
+// ============== START CONVERSION FUNCTIONS ==============
+type SubFasScheduleObject = {"key": string, "value": event_type};
+type FasScheduleObject = {"key": string, "value": SubFasScheduleObject[]};
+
+const convertFasScheduleToObject = (schedule : schedule_type) : FasScheduleObject[] => {
+    let dataObject : FasScheduleObject[] = [];
+    schedule.forEach((value: Map<string, event_type>, key: string) => {
+        let new_entry : FasScheduleObject = { "key": key, "value": []};
+        value.forEach((sub_value: event_type, sub_key: string) => {
+            let new_sub_entry : SubFasScheduleObject = {"key": sub_key, "value": sub_value};
+            new_entry.value.push(new_sub_entry);
+        })
+
+        dataObject.push(new_entry);
+    })
+
+    return dataObject;
+}
+
+const convertObjectToFasSchedule = (object : FasScheduleObject[]) : schedule_type => {
+    let map : schedule_type = new Map<string, Map<string, event_type>>();
+    object.forEach((entry : FasScheduleObject) => {
+        let sub_map : Map<string, event_type> = new Map<string, event_type>();
+        entry.value.forEach((sub_entry: SubFasScheduleObject) => {
+            sub_map.set(sub_entry.key, sub_entry.value);
+        })
+        map.set(entry.key, sub_map);
+    })
+
+    return map;
+}
+
+// ============== END CONVERSION FUNCTIONS ==============
+
+@Serializable()
 export class User {
-    chatId: number;
-    firstName: string;
-    lastName: string | undefined;
-    schedules: string[];
-    fasFile: string | undefined;
-    fasBaseDate: moment.Moment | undefined;
-    fasClasses: class_type[] | undefined;
+    @JsonProperty() chatId: number;
+    @JsonProperty() firstName: string;
+    @JsonProperty() lastName: string | undefined;
+    @JsonProperty() schedules: string[];
+    @JsonProperty() fasFile: string | undefined;
+    @JsonProperty() fasBaseDate: moment.Moment | undefined;
+    @JsonProperty() fasClasses: class_type[] | undefined;
+    @JsonProperty() rssChannels: string[] | undefined;
+    @JsonProperty() rssGuids: string[];
+    // Stored with different treatment
+    @JsonProperty({ beforeDeserialize: convertObjectToFasSchedule, afterSerialize: convertFasScheduleToObject})
     fasSchedule: schedule_type | undefined;
-    rssChannels: string[] | undefined;
-    rssGuids: string[];
+    // Not stored information
     lastChatInformation: ChatInformation | undefined;
 
     constructor(chatId: number, firstName: string, lastName: string | undefined) {
@@ -72,17 +110,39 @@ export class User {
     setFasSchedule(schedule: schedule_type) { this.fasSchedule = schedule; }
     setRSSChannels(channels: string[]) { this.rssChannels = channels; }
     setChatInformation(chatInformation: ChatInformation | undefined) { this.lastChatInformation = chatInformation; }
-
-    parseObjects() {
-        this.lastChatInformation = Object.assign(new ChatInformation(0, null, null), this.lastChatInformation);
-        this.lastChatInformation.parseObjects();
-    }
 }
 
+// ============== START CONVERSION FUNCTIONS ==============
+type MapScheduleObject = {"key": string, "value": number[]}
+
+const convertMapSchedulesToObject = (map : Map<string, number[]>) : MapScheduleObject[] => {
+    let dataObject : MapScheduleObject[] = [];
+    map.forEach((value: number[], key: string) => {
+        let new_entry : MapScheduleObject = { "key": key, "value": value};
+        dataObject.push(new_entry);
+    })
+
+    return dataObject;
+}
+
+const convertObjectToMapSchedules = (object : MapScheduleObject[]) : Map<string, number[]> => {
+    let map : Map<string, number[]> = new Map<string, number[]>();
+    object.forEach((entry : MapScheduleObject) => {
+        map.set(entry.key, entry.value);
+    })
+
+    return map;
+}
+
+// ============== END CONVERSION FUNCTIONS ==============
+
 export class BotInformation {
-    users: User[];
-    commands: Map<number, MockUpCommand>;
+    @JsonProperty({ type: User }) users: Array<User>;
+    // Stored with different treatment
+    @JsonProperty({ beforeDeserialize: convertObjectToMapSchedules, afterSerialize: convertMapSchedulesToObject })
     schedules: Map<string, number[]>;
+    // Not stored information
+    commands: Map<number, MockUpCommand>;
 
     constructor(schedulesList: string[] = []) {
         this.users = [];
@@ -114,11 +174,5 @@ export class BotInformation {
             scheduled_users.push(user.getChatId());
             return true;
         }
-    }
-
-    cleanUsers() { this.users.forEach(x => x.setChatInformation(undefined)); }
-    parseObjects() {
-        this.users = this.users.map(x => Object.assign(new User(0, "MockUp User", undefined), x));
-        this.users.forEach(x => x.parseObjects());
     }
 }

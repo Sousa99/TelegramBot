@@ -26,7 +26,7 @@ var weekDaysEnglish = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', '
 
 type task_type = { name: string, state: string };
 export type class_type = { name: string, tasks: task_type[] };
-type event_type = { class: string, room: string };
+export type event_type = { class: string, room: string };
 export type schedule_type = Map<string, Map<string, event_type>>
 type registry_info_type = { description: string, state: string };
 type info_type = { base_date: moment.Moment, classes: class_type[], schedule: schedule_type, rss_channels: string[] }
